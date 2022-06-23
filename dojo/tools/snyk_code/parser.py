@@ -3,7 +3,6 @@ import json
 from cvss.cvss3 import CVSS3
 from dojo.models import Finding
 
-# The class name must be the Python module name without underscores plus Parser
 class SnykCodeParser(object):
 
     def get_scan_types(self):
