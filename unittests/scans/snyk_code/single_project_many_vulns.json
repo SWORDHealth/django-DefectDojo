@@ -1,0 +1,3632 @@
+{
+    "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+    "version": "2.1.0",
+    "runs": [
+      {
+        "tool": {
+          "driver": {
+            "name": "SnykCode",
+            "semanticVersion": "1.0.0",
+            "version": "1.0.0",
+            "rules": [
+              {
+                "id": "go/InsecureHash",
+                "name": "InsecureHash",
+                "shortDescription": {
+                  "text": "Use of Password Hash With Insufficient Computational Effort"
+                },
+                "defaultConfiguration": {
+                  "level": "warning"
+                },
+                "help": {
+                  "markdown": "\n## Details\n\nSensitive information should never be stored in plain text, since this makes it very easy for unauthorized users, whether malicious insiders or outside attackers, to access. Hashing methods are used to make stored passwords and other sensitive data unreadable to users. For example, when a password is defined for the first time, it is hashed and then stored. The next time that user attempts to log on, the password they enter is hashed following the same procedure and compared with the stored value. In this way, the original password never needs to be stored in the system.\n\nHashing is a one-way scheme, meaning a hashed password cannot be reverse engineered. However, if an outdated or custom programmed hashing scheme is used, it becomes simple for an attacker with powerful modern computing power to gain access to the hashes used. This opens up access to all stored password information, leading to breached security. Therefore, it is essential for developers to understand modern, secure password hashing techniques.\n\n### Best practices for prevention\n* Use strong standard algorithms for hashing rather than simpler but outdated methods or DIY hashing schemes, which may have inherent weaknesses.\n* Use modular design for all code dealing with hashing so it can be swapped out as security standards change over time.\n* Use salting in combination with hashing (While this places more demands on resources, it is an essential step for tighter security.).\n* Implement zero-trust architecture to ensure that access to password data is granted only for legitimate business purposes.\n* Increase developer awareness of current standards in data security and cryptography.",
+                  "text": ""
+                },
+                "properties": {
+                  "tags": [
+                    "go"
+                  ],
+                  "categories": [
+                    "Security"
+                  ],
+                  "exampleCommitFixes": [],
+                  "exampleCommitDescriptions": [],
+                  "precision": "very-high",
+                  "repoDatasetSize": 0,
+                  "cwe": [
+                    "CWE-916"
+                  ]
+                }
+              },
+              {
+                "id": "go/PT",
+                "name": "PT",
+                "shortDescription": {
+                  "text": "Path Traversal"
+                },
+                "defaultConfiguration": {
+                  "level": "error"
+                },
+                "help": {
+                  "markdown": "## Details\n\nA Directory Traversal attack (also known as path traversal) aims to access files and directories that are stored outside the intended folder. By manipulating files with \"dot-dot-slash (../)\" sequences and its variations, or by using absolute file paths, it may be possible to access arbitrary files and directories stored on file system, including application source code, configuration, and other critical system files.\n\nDirectory Traversal vulnerabilities can be generally divided into two types:\n\n- **Information Disclosure**: Allows the attacker to gain information about the folder structure or read the contents of sensitive files on the system.\n\n`st` is a module for serving static files on web pages, and contains a [vulnerability of this type](https://snyk.io/vuln/npm:st:20140206). In our example, we will serve files from the `public` route.\n\nIf an attacker requests the following URL from our server, it will in turn leak the sensitive private key of the root user.\n\n```\ncurl http://localhost:8080/public/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/root/.ssh/id_rsa\n```\n**Note** `%2e` is the URL encoded version of `.` (dot).\n\n- **Writing arbitrary files**: Allows the attacker to create or replace existing files. This type of vulnerability is also known as `Zip-Slip`.\n\nOne way to achieve this is by using a malicious `zip` archive that holds path traversal filenames. When each filename in the zip archive gets concatenated to the target extraction folder, without validation, the final path ends up outside of the target folder. If an executable or a configuration file is overwritten with a file containing malicious code, the problem can turn into an arbitrary code execution issue quite easily.\n\nThe following is an example of a `zip` archive with one benign file and one malicious file. Extracting the malicious file will result in traversing out of the target folder, ending up in `/root/.ssh/` overwriting the `authorized_keys` file:\n\n```\n2018-04-15 22:04:29 .....           19           19  good.txt\n2018-04-15 22:04:42 .....           20           20  ../../../../../../root/.ssh/authorized_keys\n```",
+                  "text": ""
+                },
+                "properties": {
+                  "tags": [
+                    "go"
+                  ],
+                  "categories": [
+                    "Security"
+                  ],
+                  "exampleCommitFixes": [
+                    {
+                      "commitURL": "https://github.com/pacolang/paco/commit/d05f41cb0aa3167b86bd3b1063d07d7e64bec86f?diff=split#diff-7ddfb3e035b42cd70649cc33393fe32cR26",
+                      "lines": [
+                        {
+                          "line": "// Commands",
+                          "lineNumber": 24,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "switch os.Args[1] {",
+                          "lineNumber": 25,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "case \"build\":",
+                          "lineNumber": 26,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "  err := buildCommand.Parse(os.Args[2:])",
+                          "lineNumber": 27,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "// Read the given file",
+                          "lineNumber": 44,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "bytes, err := ioutil.ReadFile(os.Args[1])",
+                          "lineNumber": 17,
+                          "lineChange": "removed"
+                        },
+                        {
+                          "line": "bytes, err := ioutil.ReadFile(file)",
+                          "lineNumber": 45,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "if err != nil {",
+                          "lineNumber": 46,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "  log.Errorf(err)",
+                          "lineNumber": 47,
+                          "lineChange": "none"
+                        }
+                      ]
+                    },
+                    {
+                      "commitURL": "https://github.com/trinchan/slackbot/commit/c8350a18049c609ef7b6847666d07e69aca9fb46?diff=split#diff-f2f667c6f0bb538d9d35241bd93421fcL18",
+                      "lines": [
+                        {
+                          "line": "func init() {",
+                          "lineNumber": 15,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "  flag.Parse()",
+                          "lineNumber": 16,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "  var configFile = flag.String(\"c\", \"config.json\", \"Config file (default ./config.json)\")",
+                          "lineNumber": 17,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "  config, err := ioutil.ReadFile(configFile)",
+                          "lineNumber": 18,
+                          "lineChange": "removed"
+                        },
+                        {
+                          "line": "  config, err := ioutil.ReadFile(*configFile)",
+                          "lineNumber": 18,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "  if err != nil {",
+                          "lineNumber": 19,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "    log.Println(\"open config: \", err)",
+                          "lineNumber": 20,
+                          "lineChange": "none"
+                        }
+                      ]
+                    },
+                    {
+                      "commitURL": "https://github.com/ketchuphq/ketchup/commit/31630fa4703d23c6055439536fd661d3c47da038?diff=split#diff-d72b60c856c1aa9b8e14c2c3c4b221abL59",
+                      "lines": [
+                        {
+                          "line": "Run: func(ctx *service.CommandContext) {",
+                          "lineNumber": 56,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "  ctx.RequireExactlyNArgs(1)",
+                          "lineNumber": 57,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "  f, err := os.Open(ctx.Args[0])",
+                          "lineNumber": 58,
+                          "lineChange": "removed"
+                        },
+                        {
+                          "line": "  if err != nil {",
+                          "lineNumber": 59,
+                          "lineChange": "removed"
+                        },
+                        {
+                          "line": "    panic(err)",
+                          "lineNumber": 60,
+                          "lineChange": "removed"
+                        },
+                        {
+                          "line": "  err := m.importFromJSON(ctx.Args[0])",
+                          "lineNumber": 42,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "if err != nil {",
+                          "lineNumber": 68,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "\tpanic(err)",
+                          "lineNumber": 69,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "func (m *Module) importFromJSON(path string) error {",
+                          "lineNumber": 78,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "  f, err := os.Open(path)",
+                          "lineNumber": 79,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "  if err != nil {",
+                          "lineNumber": 80,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "    return err",
+                          "lineNumber": 81,
+                          "lineChange": "added"
+                        }
+                      ]
+                    }
+                  ],
+                  "exampleCommitDescriptions": [
+                    "* remove default config file.",
+                    "The tests are\nmoved to that package and improved.",
+                    "Added support for escaped file names."
+                  ],
+                  "precision": "very-high",
+                  "repoDatasetSize": 527,
+                  "cwe": [
+                    "CWE-23"
+                  ]
+                }
+              },
+              {
+                "id": "go/TooSmallKeySize/test",
+                "name": "TooSmallKeySize/test",
+                "shortDescription": {
+                  "text": "Inadequate Encryption Strength"
+                },
+                "defaultConfiguration": {
+                  "level": "note"
+                },
+                "help": {
+                  "markdown": "\n## Details\n\nImplementing encryption for the transmission and storage of sensitive information is essential. But encryption standards are constantly changing since attackers have more and more powerful resources at their disposal-along with more sophisticated attack algorithms. This means that encryption is only useful if it meets current standards appropriate for the type of data being transmitted or stored.\nWhen organizations use weakly encoded passwords or weak hashes (especially when they also utilize single-factor authentication, which places too much emphasis on passwords), attackers can potentially gain unauthorized access through a brute-force attack.\n\n### Best practices for prevention\n* Understand best practices of contemporary encryption algorithms and techniques.\n* Avoid encryption algorithms and techniques that are widely known to be outdated (for example, DES).\n* Implement multi-factor authentication to minimize reliance on a single factor, such as a password, that is too susceptible to brute-force attacks.",
+                  "text": ""
+                },
+                "properties": {
+                  "tags": [
+                    "go"
+                  ],
+                  "categories": [
+                    "Security",
+                    "InTest"
+                  ],
+                  "exampleCommitFixes": [
+                    {
+                      "commitURL": "https://github.com/cs3org/reva/commit/38af4c15190bfbc83177107e8e00bf98c54fb009?diff=split#diff-99c46b42524a4b672d91f795f0cd434fL175",
+                      "lines": [
+                        {
+                          "line": "func mustRSAKey() *rsa.PrivateKey {",
+                          "lineNumber": 173,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "  key, err := rsa.GenerateKey(rand.Reader, 1024)",
+                          "lineNumber": 174,
+                          "lineChange": "removed"
+                        },
+                        {
+                          "line": "  key, err := rsa.GenerateKey(rand.Reader, 2048)",
+                          "lineNumber": 174,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "  if err != nil {",
+                          "lineNumber": 175,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "    // TODO really panic?",
+                          "lineNumber": 176,
+                          "lineChange": "none"
+                        }
+                      ]
+                    },
+                    {
+                      "commitURL": "https://github.com/dexidp/dex/commit/ebbea78a2eb0f89104ccedf54a7752f601b72fd5?diff=split#diff-f5a63b3798c32b70652a7c48786df8bdL139",
+                      "lines": [
+                        {
+                          "line": "func GeneratePrivateKey() (*PrivateKey, error) {",
+                          "lineNumber": 137,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "  pk, err := rsa.GenerateKey(rand.Reader, 1024)",
+                          "lineNumber": 138,
+                          "lineChange": "removed"
+                        },
+                        {
+                          "line": "  pk, err := rsa.GenerateKey(rand.Reader, 2048)",
+                          "lineNumber": 138,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "  if err != nil {",
+                          "lineNumber": 139,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "    return nil, err",
+                          "lineNumber": 140,
+                          "lineChange": "none"
+                        }
+                      ]
+                    },
+                    {
+                      "commitURL": "https://github.com/golang/go/commit/5b20a18f3b985cdf116a0ea6dd589d26056b16ad?diff=split#diff-863700294a2fc12b6fb40449950e5a1aL31",
+                      "lines": [
+                        {
+                          "line": "flag.Parse()",
+                          "lineNumber": 37,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "priv, err := rsa.GenerateKey(rand.Reader, 1024)",
+                          "lineNumber": 30,
+                          "lineChange": "removed"
+                        },
+                        {
+                          "line": "}",
+                          "lineNumber": 41,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "priv, err := rsa.GenerateKey(rand.Reader, *rsaBits)",
+                          "lineNumber": 43,
+                          "lineChange": "added"
+                        },
+                        {
+                          "line": "if err != nil {",
+                          "lineNumber": 44,
+                          "lineChange": "none"
+                        },
+                        {
+                          "line": "  log.Fatalf(\"failed to generate private key: %s\", err)",
+                          "lineNumber": 45,
+                          "lineChange": "none"
+                        }
+                      ]
+                    }
+                  ],
+                  "exampleCommitDescriptions": [
+                    "allow passing of tls certificates via env vars or files -",
+                    "Support the use of static RSA keys for JWT signature"
+                  ],
+                  "precision": "very-high",
+                  "repoDatasetSize": 15,
+                  "cwe": [
+                    "CWE-326"
+                  ]
+                }
+              },
+              {
+                "id": "go/InsecureHash/test",
+                "name": "InsecureHash/test",
+                "shortDescription": {
+                  "text": "Use of Password Hash With Insufficient Computational Effort"
+                },
+                "defaultConfiguration": {
+                  "level": "note"
+                },
+                "help": {
+                  "markdown": "\n## Details\n\nSensitive information should never be stored in plain text, since this makes it very easy for unauthorized users, whether malicious insiders or outside attackers, to access. Hashing methods are used to make stored passwords and other sensitive data unreadable to users. For example, when a password is defined for the first time, it is hashed and then stored. The next time that user attempts to log on, the password they enter is hashed following the same procedure and compared with the stored value. In this way, the original password never needs to be stored in the system.\n\nHashing is a one-way scheme, meaning a hashed password cannot be reverse engineered. However, if an outdated or custom programmed hashing scheme is used, it becomes simple for an attacker with powerful modern computing power to gain access to the hashes used. This opens up access to all stored password information, leading to breached security. Therefore, it is essential for developers to understand modern, secure password hashing techniques.\n\n### Best practices for prevention\n* Use strong standard algorithms for hashing rather than simpler but outdated methods or DIY hashing schemes, which may have inherent weaknesses.\n* Use modular design for all code dealing with hashing so it can be swapped out as security standards change over time.\n* Use salting in combination with hashing (While this places more demands on resources, it is an essential step for tighter security.).\n* Implement zero-trust architecture to ensure that access to password data is granted only for legitimate business purposes.\n* Increase developer awareness of current standards in data security and cryptography.",
+                  "text": ""
+                },
+                "properties": {
+                  "tags": [
+                    "go"
+                  ],
+                  "categories": [
+                    "Security",
+                    "InTest"
+                  ],
+                  "exampleCommitFixes": [],
+                  "exampleCommitDescriptions": [],
+                  "precision": "very-high",
+                  "repoDatasetSize": 0,
+                  "cwe": [
+                    "CWE-916"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "results": [
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.Sum) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.Sum](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/golang.org/x/crypto/ssh/keys.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 1457,
+                    "endLine": 1457,
+                    "startColumn": 12,
+                    "endColumn": 36
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "bedab105b56eeb55fce4bf3efadb04ff2cd9940719f9f365b6a907803e5b1232",
+              "1": "9946edc6.60ac1fb5.b348580b.1fdcbd87.2263d760.5563a494.0c728423.b0cf46e7.9946edc6.60ac1fb5.b348580b.1fdcbd87.2263d760.5563a494.0c728423.b0cf46e7"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/golang.org/x/crypto/ssh/keys.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 1457,
+                              "endLine": 1457,
+                              "startColumn": 12,
+                              "endColumn": 36
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 374,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.Sum) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.Sum](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/hashicorp/go-getter/folder_storage.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 63,
+                    "endLine": 63,
+                    "startColumn": 9,
+                    "endColumn": 28
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "4497fb393f51e224f7fa05d1f4f69252d149b155689538c84095b125eebd4582",
+              "1": "9946edc6.60ac1fb5.b348580b.1fdcbd87.2263d760.5563a494.0c728423.b0cf46e7.9946edc6.60ac1fb5.b348580b.1fdcbd87.2263d760.5563a494.0c728423.b0cf46e7"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/folder_storage.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 63,
+                              "endLine": 63,
+                              "startColumn": 9,
+                              "endColumn": 28
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 374,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.Sum) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.Sum](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/aws/aws-sdk-go/service/s3/sse.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 80,
+                    "endLine": 80,
+                    "startColumn": 10,
+                    "endColumn": 29
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "e93535099288a5e6fb59acc6da8c0319b0f814e6e93a8db1f717a87539a9cd2e",
+              "1": "9946edc6.60ac1fb5.b348580b.1fdcbd87.2263d760.5563a494.0c728423.b0cf46e7.9946edc6.60ac1fb5.b348580b.1fdcbd87.2263d760.5563a494.0c728423.b0cf46e7"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/aws/aws-sdk-go/service/s3/sse.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 80,
+                              "endLine": 80,
+                              "startColumn": 10,
+                              "endColumn": 29
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 374,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/hashicorp/go-getter/checksum.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 145,
+                    "endLine": 145,
+                    "startColumn": 12,
+                    "endColumn": 20
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "7d41516cdf1658358d61b6944dca4e24463a8c09bc83747d746db83085974525",
+              "1": "80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3.80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/checksum.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 145,
+                              "endLine": 145,
+                              "startColumn": 12,
+                              "endColumn": 20
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/hashicorp/go-getter/checksum.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 168,
+                    "endLine": 168,
+                    "startColumn": 12,
+                    "endColumn": 20
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "1750ae17d5bb95a53721ac3f3d38d85ba07f4c7749da85758c466b664e8ae29b",
+              "1": "80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3.80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/checksum.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 168,
+                              "endLine": 168,
+                              "startColumn": 12,
+                              "endColumn": 20
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/google/uuid/hash.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 44,
+                    "endLine": 44,
+                    "startColumn": 17,
+                    "endColumn": 25
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "20e2577c8c8fda32e29a3cc142608ed1ad6a82c4b9ba473a28584912ecc6ea89",
+              "1": "20d5557e.48506fc8.45df3e14.772d51ed.556f02b4.67ab4541.860c51ff.678b0e20.20d5557e.48506fc8.45df3e14.772d51ed.556f02b4.67ab4541.860c51ff.678b0e20"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/google/uuid/hash.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 44,
+                              "endLine": 44,
+                              "startColumn": 17,
+                              "endColumn": 25
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "github/util.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 86,
+                    "endLine": 86,
+                    "startColumn": 7,
+                    "endColumn": 15
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "fc95d07a3f57718b0d72209bfce01d2d6ee77e1fdb7a65a0cc555748885ccce8",
+              "1": "80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3.80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "github/util.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 86,
+                              "endLine": 86,
+                              "startColumn": 7,
+                              "endColumn": 15
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 374,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/golangci/golangci-lint/pkg/printers/codeclimate.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 43,
+                    "endLine": 43,
+                    "startColumn": 11,
+                    "endColumn": 19
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "466dd8948b00d4415e071745e457837d95772ab2e493ac646a73da2e185511b5",
+              "1": "80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3.80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/golangci-lint/pkg/printers/codeclimate.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 43,
+                              "endLine": 43,
+                              "startColumn": 11,
+                              "endColumn": 19
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 374,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/aws/aws-sdk-go/service/s3/body_hash.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 31,
+                    "endLine": 31,
+                    "startColumn": 7,
+                    "endColumn": 15
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "9ee03b1b605cfef5180d996eb4f8a1f1c57d1474fbaa6addd9e4b91243622af3",
+              "1": "80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3.80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/aws/aws-sdk-go/service/s3/body_hash.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 31,
+                              "endLine": 31,
+                              "startColumn": 7,
+                              "endColumn": 15
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/aws/aws-sdk-go/service/s3/body_hash.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 72,
+                    "endLine": 72,
+                    "startColumn": 13,
+                    "endColumn": 21
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "f1b95848075d21fa1ec1c2f9b2045e32c131eaa5fabd345779dba610e6bdff86",
+              "1": "80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3.80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/aws/aws-sdk-go/service/s3/body_hash.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 72,
+                              "endLine": 72,
+                              "startColumn": 13,
+                              "endColumn": 21
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/aws/aws-sdk-go/service/s3/body_hash.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 207,
+                    "endLine": 207,
+                    "startColumn": 7,
+                    "endColumn": 15
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "1d4f80b496421a69d5a964548a9608cc7fe91545cb2858376342eb71b019d193",
+              "1": "80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3.80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/aws/aws-sdk-go/service/s3/body_hash.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 207,
+                              "endLine": 207,
+                              "startColumn": 7,
+                              "endColumn": 15
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/golang.org/x/crypto/openpgp/packet/public_key_v3.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 81,
+                    "endLine": 81,
+                    "startColumn": 17,
+                    "endColumn": 25
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "dc2b34ef5e482a55484d9b53c6af1e7717f4e610cf9a9611c53515519ce862fd",
+              "1": "80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3.80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/golang.org/x/crypto/openpgp/packet/public_key_v3.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 81,
+                              "endLine": 81,
+                              "startColumn": 17,
+                              "endColumn": 25
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 374,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/hashicorp/go-getter/checksum.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 147,
+                    "endLine": 147,
+                    "startColumn": 12,
+                    "endColumn": 21
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "06085cc193e0ad78d68b0df9d0e11ddbee01f773be089f9d42efa9091e8aa7e8",
+              "1": "d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802.d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/checksum.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 147,
+                              "endLine": 147,
+                              "startColumn": 12,
+                              "endColumn": 21
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/hashicorp/go-getter/checksum.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 171,
+                    "endLine": 171,
+                    "startColumn": 12,
+                    "endColumn": 21
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "4a4be80dbd0b67d357367f040db2ef67a8a3ff630121b98baaf3e0fdee0576f2",
+              "1": "d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802.d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/checksum.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 171,
+                              "endLine": 171,
+                              "startColumn": 12,
+                              "endColumn": 21
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/google/uuid/hash.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 52,
+                    "endLine": 52,
+                    "startColumn": 17,
+                    "endColumn": 26
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "5b485f1581b9dd60cda3a117d78ab34bccbb4c62047eb40c12c219817b4e3310",
+              "1": "20d5557e.48506fc8.45df3e14.89f13fa7.556f02b4.67ab4541.860c51ff.678b0e20.20d5557e.48506fc8.45df3e14.89f13fa7.556f02b4.67ab4541.860c51ff.678b0e20"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/google/uuid/hash.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 52,
+                              "endLine": 52,
+                              "startColumn": 17,
+                              "endColumn": 26
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/golang.org/x/crypto/openpgp/packet/public_key.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 307,
+                    "endLine": 307,
+                    "startColumn": 17,
+                    "endColumn": 26
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "5e16bc913311506722f46f3b139796b9b6d614b7084832aa6bf72c789770498b",
+              "1": "d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802.d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/golang.org/x/crypto/openpgp/packet/public_key.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 307,
+                              "endLine": 307,
+                              "startColumn": 17,
+                              "endColumn": 26
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 374,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/gopkg.in/square/go-jose.v2/asymmetric.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 200,
+                    "endLine": 200,
+                    "startColumn": 26,
+                    "endColumn": 35
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "fb0692b9c4c5b221e926d6c80babb492ef9d6a10a6529e9dc0e2c435b3107fab",
+              "1": "d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802.d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/gopkg.in/square/go-jose.v2/asymmetric.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 200,
+                              "endLine": 200,
+                              "startColumn": 26,
+                              "endColumn": 35
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/gopkg.in/square/go-jose.v2/asymmetric.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 253,
+                    "endLine": 253,
+                    "startColumn": 26,
+                    "endColumn": 35
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "f0bbbc7dd2e2074805314a93f4e0b90661b8549d59c437e9e8c6bd87e877750f",
+              "1": "d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802.d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/gopkg.in/square/go-jose.v2/asymmetric.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 253,
+                              "endLine": 253,
+                              "startColumn": 26,
+                              "endColumn": 35
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/golang.org/x/crypto/openpgp/packet/symmetrically_encrypted.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 81,
+                    "endLine": 81,
+                    "startColumn": 8,
+                    "endColumn": 17
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "0c1b22748e7bf2912afb47ca03fbcadd106ebb3fc9749dfa4093a9bb81618bc3",
+              "1": "d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802.d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/golang.org/x/crypto/openpgp/packet/symmetrically_encrypted.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 81,
+                              "endLine": 81,
+                              "startColumn": 8,
+                              "endColumn": 17
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/golang.org/x/crypto/openpgp/packet/symmetrically_encrypted.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 285,
+                    "endLine": 285,
+                    "startColumn": 7,
+                    "endColumn": 16
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "f998b4e14e655ecbdeaa072b52be398b9565f6eb8455c72d7a3fad29a9d952c8",
+              "1": "d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802.d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/golang.org/x/crypto/openpgp/packet/symmetrically_encrypted.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 285,
+                              "endLine": 285,
+                              "startColumn": 7,
+                              "endColumn": 16
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/golangci/dupl/syntax/syntax.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 168,
+                    "endLine": 168,
+                    "startColumn": 7,
+                    "endColumn": 16
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "a75c3e8eb497a793a78c9a3eb50e8aa6b634b616b2c00b579b32b905b71d7452",
+              "1": "d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802.d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/dupl/syntax/syntax.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 168,
+                              "endLine": 168,
+                              "startColumn": 7,
+                              "endColumn": 16
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 374,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/golang.org/x/crypto/openpgp/packet/private_key.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 257,
+                    "endLine": 257,
+                    "startColumn": 8,
+                    "endColumn": 17
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "1378b2f5e8383746b70c9aea01c78cbc802c8cd6983eb130aa19af3097a7ca57",
+              "1": "d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802.d1695a15.a4aa5f8b.03931d13.8c3beb4a.bcaf552e.ff3e1e9e.096de90b.19cb7802"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/golang.org/x/crypto/openpgp/packet/private_key.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 257,
+                              "endLine": 257,
+                              "startColumn": 8,
+                              "endColumn": 17
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 374,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.Sum) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.Sum](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/stretchr/objx/security.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 10,
+                    "endLine": 10,
+                    "startColumn": 7,
+                    "endColumn": 40
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "16063194054dc7cb01a0f66c48fb0cea888176b8b315e8124218e39cb6787c83",
+              "1": "7ed56ed0.c2991f7e.581890b8.667761a9.0772103c.fe9d6b00.b61f13e7.2a5b7089.7ed56ed0.c2991f7e.581890b8.667761a9.0772103c.fe9d6b00.b61f13e7.2a5b7089"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/stretchr/objx/security.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 10,
+                              "endLine": 10,
+                              "startColumn": 7,
+                              "endColumn": 40
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 374,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.Sum) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.Sum](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/gopkg.in/square/go-jose.v2/jwk.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 148,
+                    "endLine": 148,
+                    "startColumn": 19,
+                    "endColumn": 49
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "d5b85f52487ff4a1efd49f4afa6a46a35a2be57fcce6deee9a3f26c2a084bd87",
+              "1": "7ed56ed0.c2991f7e.581890b8.667761a9.0772103c.fe9d6b00.b61f13e7.2a5b7089.7ed56ed0.c2991f7e.581890b8.667761a9.0772103c.fe9d6b00.b61f13e7.2a5b7089"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/gopkg.in/square/go-jose.v2/jwk.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 148,
+                              "endLine": 148,
+                              "startColumn": 19,
+                              "endColumn": 49
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash",
+            "ruleIndex": 0,
+            "level": "warning",
+            "message": {
+              "text": "The SHA1 hash (used in crypto.sha1.Sum) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The SHA1 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.sha1.Sum](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/gopkg.in/square/go-jose.v2/jwk.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 298,
+                    "endLine": 298,
+                    "startColumn": 14,
+                    "endColumn": 31
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "898dc1019d4613a05363bffe602749cd68f1a44713a15899532556ddf10da82c",
+              "1": "7ed56ed0.c2991f7e.581890b8.667761a9.0772103c.fe9d6b00.b61f13e7.2a5b7089.7ed56ed0.c2991f7e.581890b8.667761a9.0772103c.fe9d6b00.b61f13e7.2a5b7089"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/gopkg.in/square/go-jose.v2/jwk.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 298,
+                              "endLine": 298,
+                              "startColumn": 14,
+                              "endColumn": 31
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 424,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/PT",
+            "ruleIndex": 1,
+            "level": "error",
+            "message": {
+              "text": "Unsanitized input from a CLI argument flows into os.Open, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to open arbitrary files.",
+              "markdown": "Unsanitized input from {0} {1} into {2}, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to open arbitrary files.",
+              "arguments": [
+                "[a CLI argument](0)",
+                "[flows](1),(2),(3),(4),(5),(6),(7),(8),(9),(10)",
+                "[os.Open](11)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 95,
+                    "endLine": 95,
+                    "startColumn": 13,
+                    "endColumn": 29
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "f32b742d2158c22226a0fa2f0c7146daa9ce63c942384c6203aa1878fce04bba",
+              "1": "b5336025.73eb5804.45df3e14.47a9547c.a8b1e9a5.995dab92.6373e1ef.1bff12d3.34950bd9.e3a22afc.45df3e14.f24cd98e.c43b942e.57f89f2f.be8ec6d7.178b9d5e"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 196,
+                              "endLine": 196,
+                              "startColumn": 9,
+                              "endColumn": 19
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 1,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 196,
+                              "endLine": 196,
+                              "startColumn": 9,
+                              "endColumn": 19
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 2,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 217,
+                              "endLine": 217,
+                              "startColumn": 11,
+                              "endColumn": 22
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 3,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 250,
+                              "endLine": 250,
+                              "startColumn": 9,
+                              "endColumn": 13
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 4,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 258,
+                              "endLine": 258,
+                              "startColumn": 9,
+                              "endColumn": 13
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 5,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 262,
+                              "endLine": 262,
+                              "startColumn": 23,
+                              "endColumn": 27
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 6,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 262,
+                              "endLine": 273,
+                              "startColumn": 2,
+                              "endColumn": 2
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 7,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 263,
+                              "endLine": 263,
+                              "startColumn": 30,
+                              "endColumn": 33
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 8,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 269,
+                              "endLine": 269,
+                              "startColumn": 26,
+                              "endColumn": 29
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 9,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 86,
+                              "endLine": 86,
+                              "startColumn": 18,
+                              "endColumn": 25
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 10,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 95,
+                              "endLine": 95,
+                              "startColumn": 21,
+                              "endColumn": 28
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 11,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 95,
+                              "endLine": 95,
+                              "startColumn": 13,
+                              "endColumn": 29
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 818,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                },
+                {
+                  "label": true,
+                  "type": "fixExamples"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/PT",
+            "ruleIndex": 1,
+            "level": "error",
+            "message": {
+              "text": "Unsanitized input from a CLI argument flows into io.ioutil.WriteFile, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to write arbitrary files.",
+              "markdown": "Unsanitized input from {0} {1} into {2}, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to write arbitrary files.",
+              "arguments": [
+                "[a CLI argument](0)",
+                "[flows](1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11)",
+                "[io.ioutil.WriteFile](12)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 151,
+                    "endLine": 151,
+                    "startColumn": 10,
+                    "endColumn": 43
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "cda70878d5c4d589a71c8fa7dfcc83d0bc3e7cfc3b8d7d8441290801359b7f4d",
+              "1": "b5336025.73eb5804.45df3e14.47a9547c.a8b1e9a5.995dab92.df7e59ba.a1db9216.34950bd9.e3a22afc.45df3e14.f24cd98e.c43b942e.57f89f2f.da899bb0.178b9d5e"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 196,
+                              "endLine": 196,
+                              "startColumn": 9,
+                              "endColumn": 19
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 1,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 196,
+                              "endLine": 196,
+                              "startColumn": 9,
+                              "endColumn": 19
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 2,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 217,
+                              "endLine": 217,
+                              "startColumn": 11,
+                              "endColumn": 22
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 3,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 250,
+                              "endLine": 250,
+                              "startColumn": 9,
+                              "endColumn": 13
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 4,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 258,
+                              "endLine": 258,
+                              "startColumn": 9,
+                              "endColumn": 13
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 5,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 262,
+                              "endLine": 262,
+                              "startColumn": 23,
+                              "endColumn": 27
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 6,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 262,
+                              "endLine": 273,
+                              "startColumn": 2,
+                              "endColumn": 2
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 7,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 263,
+                              "endLine": 263,
+                              "startColumn": 30,
+                              "endColumn": 33
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 8,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 269,
+                              "endLine": 269,
+                              "startColumn": 26,
+                              "endColumn": 29
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 9,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 86,
+                              "endLine": 86,
+                              "startColumn": 18,
+                              "endColumn": 25
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 10,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 108,
+                              "endLine": 108,
+                              "startColumn": 12,
+                              "endColumn": 19
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 11,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 151,
+                              "endLine": 151,
+                              "startColumn": 27,
+                              "endColumn": 34
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 12,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/golangci/gofmt/goimports/goimports.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 151,
+                              "endLine": 151,
+                              "startColumn": 10,
+                              "endColumn": 43
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 818,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                },
+                {
+                  "label": true,
+                  "type": "fixExamples"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/PT",
+            "ruleIndex": 1,
+            "level": "error",
+            "message": {
+              "text": "Unsanitized input from the request URL flows into os.Symlink, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to create arbitrary symlinks.",
+              "markdown": "Unsanitized input from {0} {1} into {2}, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to create arbitrary symlinks.",
+              "arguments": [
+                "[the request URL](0)",
+                "[flows](1),(2),(3)",
+                "[os.Symlink](4)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 48,
+                    "endLine": 48,
+                    "startColumn": 9,
+                    "endColumn": 29
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "8d3d36e81caaf4ca8509a2f2d640ead6987c96f25285b8b5e2bd42377cab6d70",
+              "1": "c608c6ff.73eb5804.45df3e14.edbd913d.0bfd2306.67ab4541.b223b8b2.0b3d1648.1f0bd5c5.73eb5804.45df3e14.e22980a8.556f02b4.67ab4541.b223b8b2.678b0e20"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 13,
+                              "endLine": 13,
+                              "startColumn": 10,
+                              "endColumn": 15
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 1,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 13,
+                              "endLine": 13,
+                              "startColumn": 10,
+                              "endColumn": 15
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 2,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 19,
+                              "endLine": 19,
+                              "startColumn": 24,
+                              "endColumn": 27
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 3,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 48,
+                              "endLine": 48,
+                              "startColumn": 20,
+                              "endColumn": 23
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 4,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 48,
+                              "endLine": 48,
+                              "startColumn": 9,
+                              "endColumn": 29
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 818,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                },
+                {
+                  "label": true,
+                  "type": "fixExamples"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/PT",
+            "ruleIndex": 1,
+            "level": "error",
+            "message": {
+              "text": "Unsanitized input from the request URL flows into os.Symlink, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to create arbitrary symlinks.",
+              "markdown": "Unsanitized input from {0} {1} into {2}, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to create arbitrary symlinks.",
+              "arguments": [
+                "[the request URL](0)",
+                "[flows](1),(2),(3)",
+                "[os.Symlink](4)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 85,
+                    "endLine": 85,
+                    "startColumn": 10,
+                    "endColumn": 30
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "aa263dea7fbe0aa83c710c9eb3fe137bbb9a66c3cab8140a9236fbe33b9bd050",
+              "1": "c608c6ff.73eb5804.45df3e14.edbd913d.0bfd2306.67ab4541.b223b8b2.0b3d1648.1f0bd5c5.73eb5804.45df3e14.e22980a8.556f02b4.67ab4541.b223b8b2.678b0e20"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 53,
+                              "endLine": 53,
+                              "startColumn": 10,
+                              "endColumn": 15
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 1,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 53,
+                              "endLine": 53,
+                              "startColumn": 10,
+                              "endColumn": 15
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 2,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 59,
+                              "endLine": 59,
+                              "startColumn": 24,
+                              "endColumn": 27
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 3,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 85,
+                              "endLine": 85,
+                              "startColumn": 21,
+                              "endColumn": 24
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 4,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 85,
+                              "endLine": 85,
+                              "startColumn": 10,
+                              "endColumn": 30
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 818,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                },
+                {
+                  "label": true,
+                  "type": "fixExamples"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/PT",
+            "ruleIndex": 1,
+            "level": "error",
+            "message": {
+              "text": "Unsanitized input from the request URL flows into os.Open, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to open arbitrary files.",
+              "markdown": "Unsanitized input from {0} {1} into {2}, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to open arbitrary files.",
+              "arguments": [
+                "[the request URL](0)",
+                "[flows](1),(2),(3)",
+                "[os.Open](4)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 89,
+                    "endLine": 89,
+                    "startColumn": 15,
+                    "endColumn": 27
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "a3b1b8d4ad5ccf7009eb1eb615a925cab5053dfeac80a4c5d7c2cff96ccc20d3",
+              "1": "c1d2e2c2.73eb5804.45df3e14.a2215fb8.84c49f13.67ab4541.860c51ff.0b3d1648.1f0bd5c5.73eb5804.45df3e14.a2215fb8.556f02b4.67ab4541.b223b8b2.678b0e20"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 53,
+                              "endLine": 53,
+                              "startColumn": 10,
+                              "endColumn": 15
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 1,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 53,
+                              "endLine": 53,
+                              "startColumn": 10,
+                              "endColumn": 15
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 2,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 59,
+                              "endLine": 59,
+                              "startColumn": 24,
+                              "endColumn": 27
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 3,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 89,
+                              "endLine": 89,
+                              "startColumn": 23,
+                              "endColumn": 26
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 4,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_unix.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 89,
+                              "endLine": 89,
+                              "startColumn": 15,
+                              "endColumn": 27
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 818,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileSource"
+                },
+                {
+                  "label": true,
+                  "type": "fixExamples"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/PT",
+            "ruleIndex": 1,
+            "level": "error",
+            "message": {
+              "text": "Unsanitized input from the request URL flows into os.Open, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to open arbitrary files.",
+              "markdown": "Unsanitized input from {0} {1} into {2}, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to open arbitrary files.",
+              "arguments": [
+                "[the request URL](0)",
+                "[flows](1),(2),(3)",
+                "[os.Open](4)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/hashicorp/go-getter/get_file_windows.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 115,
+                    "endLine": 115,
+                    "startColumn": 15,
+                    "endColumn": 27
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "079237d36a95f8903f7c7c5fe61c80847571907533995e2eae4deba6de77f598",
+              "1": "c1d2e2c2.73eb5804.45df3e14.a2215fb8.84c49f13.67ab4541.860c51ff.0b3d1648.1f0bd5c5.73eb5804.45df3e14.a2215fb8.556f02b4.67ab4541.c2e93e04.678b0e20"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_windows.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 65,
+                              "endLine": 65,
+                              "startColumn": 10,
+                              "endColumn": 15
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 1,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_windows.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 65,
+                              "endLine": 65,
+                              "startColumn": 10,
+                              "endColumn": 15
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 2,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_windows.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 71,
+                              "endLine": 71,
+                              "startColumn": 24,
+                              "endColumn": 27
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 3,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_windows.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 115,
+                              "endLine": 115,
+                              "startColumn": 23,
+                              "endColumn": 26
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 4,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/get_file_windows.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 115,
+                              "endLine": 115,
+                              "startColumn": 15,
+                              "endColumn": 27
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 768,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                },
+                {
+                  "label": true,
+                  "type": "fixExamples"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/TooSmallKeySize/test",
+            "ruleIndex": 2,
+            "level": "note",
+            "message": {
+              "text": "Usage of 1024 bits key in crypto.rsa.GenerateKey is considered insecure. Use a key with at least 2048 bits.",
+              "markdown": "Usage of {0} bits key in {1} is considered insecure. Use a key with at least 2048 bits.",
+              "arguments": [
+                "[1024](0)",
+                "[crypto.rsa.GenerateKey](1)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/hashicorp/terraform-plugin-sdk/helper/acctest/random.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 145,
+                    "endLine": 145,
+                    "startColumn": 21,
+                    "endColumn": 55
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "d6c3da1339ea83bd53afe4c80249f91487d7956ab420af4343d9163114a6ad78",
+              "1": "f93f09c7.5d8de7a9.a2126a63.d26469c2.84c49f13.67ab4541.860c51ff.5a97af34.f93f09c7.5d8de7a9.a2126a63.d26469c2.84c49f13.67ab4541.860c51ff.5a97af34"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/terraform-plugin-sdk/helper/acctest/random.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 145,
+                              "endLine": 145,
+                              "startColumn": 51,
+                              "endColumn": 54
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 1,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/terraform-plugin-sdk/helper/acctest/random.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 145,
+                              "endLine": 145,
+                              "startColumn": 21,
+                              "endColumn": 55
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 356,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                },
+                {
+                  "label": true,
+                  "type": "fixExamples"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/TooSmallKeySize/test",
+            "ruleIndex": 2,
+            "level": "note",
+            "message": {
+              "text": "Usage of 1024 bits key in crypto.rsa.GenerateKey is considered insecure. Use a key with at least 2048 bits.",
+              "markdown": "Usage of {0} bits key in {1} is considered insecure. Use a key with at least 2048 bits.",
+              "arguments": [
+                "[1024](0)",
+                "[crypto.rsa.GenerateKey](1)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "github/resource_github_user_ssh_key_test.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 120,
+                    "endLine": 120,
+                    "startColumn": 19,
+                    "endColumn": 52
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "860711459ec794103479e3b41bfc2336a6ac6bf41b26a0e4ee1c2df5d25f104e",
+              "1": "f93f09c7.5d8de7a9.a2126a63.d26469c2.ebd5faa6.67ab4541.860c51ff.5a97af34.f93f09c7.5d8de7a9.a2126a63.d26469c2.ebd5faa6.67ab4541.860c51ff.5a97af34"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "github/resource_github_user_ssh_key_test.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 120,
+                              "endLine": 120,
+                              "startColumn": 48,
+                              "endColumn": 51
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "location": {
+                          "id": 1,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "github/resource_github_user_ssh_key_test.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 120,
+                              "endLine": 120,
+                              "startColumn": 19,
+                              "endColumn": 52
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 356,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "multipleOccurrence"
+                },
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                },
+                {
+                  "label": true,
+                  "type": "fixExamples"
+                }
+              ]
+            }
+          },
+          {
+            "ruleId": "go/InsecureHash/test",
+            "ruleIndex": 3,
+            "level": "note",
+            "message": {
+              "text": "The MD5 hash (used in crypto.md5.New) is insecure. Consider changing it to a secure hash algorithm",
+              "markdown": "The MD5 hash (used in {0}) is insecure. Consider changing it to a secure hash algorithm",
+              "arguments": [
+                "[crypto.md5.New](0)"
+              ]
+            },
+            "locations": [
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "vendor/github.com/hashicorp/go-getter/decompress_testing.go",
+                    "uriBaseId": "%SRCROOT%"
+                  },
+                  "region": {
+                    "startLine": 163,
+                    "endLine": 163,
+                    "startColumn": 7,
+                    "endColumn": 15
+                  }
+                }
+              }
+            ],
+            "fingerprints": {
+              "0": "21bd1b9a07bea0b6f4a7ef47b61ff2bc22b65de57839528bbe910e33094c1361",
+              "1": "80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3.80809c6d.0b56a347.c8fd895a.772d51ed.d251e03a.671e696d.c877902f.ea047ea3"
+            },
+            "codeFlows": [
+              {
+                "threadFlows": [
+                  {
+                    "locations": [
+                      {
+                        "location": {
+                          "id": 0,
+                          "physicalLocation": {
+                            "artifactLocation": {
+                              "uri": "vendor/github.com/hashicorp/go-getter/decompress_testing.go",
+                              "uriBaseId": "%SRCROOT%"
+                            },
+                            "region": {
+                              "startLine": 163,
+                              "endLine": 163,
+                              "startColumn": 7,
+                              "endColumn": 15
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "priorityScore": 153,
+              "priorityScoreFactors": [
+                {
+                  "label": true,
+                  "type": "hotFileCodeFlow"
+                }
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "coverage": [
+            {
+              "files": 3073,
+              "isSupported": true,
+              "lang": "Go"
+            },
+            {
+              "files": 3,
+              "isSupported": false,
+              "lang": "DIGITAL Command Language"
+            },
+            {
+              "files": 2,
+              "isSupported": true,
+              "lang": "Ruby"
+            },
+            {
+              "files": 1,
+              "isSupported": false,
+              "lang": "Io"
+            },
+            {
+              "files": 2,
+              "isSupported": false,
+              "lang": "Org"
+            },
+            {
+              "files": 2,
+              "isSupported": true,
+              "lang": "C (beta)"
+            },
+            {
+              "files": 5,
+              "isSupported": false,
+              "lang": "Unknown"
+            },
+            {
+              "files": 1,
+              "isSupported": true,
+              "lang": "C++ (beta)"
+            },
+            {
+              "files": 1,
+              "isSupported": true,
+              "lang": "HTML+ERB"
+            }
+          ]
+        }
+      }
+    ]
+  }
