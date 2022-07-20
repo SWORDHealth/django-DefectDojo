@@ -93,7 +93,19 @@ class SnykCodeParser(object):
             mitigation = ''
             if mitigation_divider in details:
                 mitigation = '# ' + mitigation_divider + '\n' + details.split(mitigation_divider)[1].strip()
-            description = details.split(mitigation_divider)[0].strip() + '\n' + message
+            details = details.replace('\n### Details', '\n### General Description')
+            description = details.split(mitigation_divider)[0].strip()
+            description += '\n### Vulnerability Details'
+            description += '\n' + message
+            description += '\n#### Vulnerable Code'
+            try:
+                for location in rule['locations']:
+                    description += '\n\t> Start line: ' + location['physicalLocation']['region']['startLine']
+                    description += '\n\t> End line: ' + location['physicalLocation']['region']['endLine']
+                    description += '\n\t> Start column: ' + location['physicalLocation']['region']['startColumn']
+                    description += '\n\t> End column: ' + location['physicalLocation']['region']['endColumn']
+            except:
+                print('Unable to parse vulnerable code lines')
             score = node['properties']['priorityScore']
             cwes = rule['properties']['cwe']
             vuln_path = ''
