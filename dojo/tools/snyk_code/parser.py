@@ -93,12 +93,21 @@ class SnykCodeParser(object):
             mitigation = ''
             if mitigation_divider in details:
                 mitigation = '# ' + mitigation_divider + '\n' + details.split(mitigation_divider)[1].strip()
-            description = details.split(mitigation_divider)[0].strip() + '\n' + message
+            details = details.replace('\n## Details', '\n## General Description')
+            description = details.split(mitigation_divider)[0].strip()
+            last_two_chars = description[-2]
+            size = len(description)
+            if last_two_chars == '\n':
+                description = description[:size - 2]
+            description += '\n## Vulnerability Details'
+            description += '\n' + message
             score = node['properties']['priorityScore']
             cwes = rule['properties']['cwe']
             vuln_path = ''
             for location in node['locations']:
                 vuln_path += location['physicalLocation']['artifactLocation']['uri']
+                vuln_path += '#L' + str(location['physicalLocation']['region']['startLine'])
+                vuln_path += '-L' + str(location['physicalLocation']['region']['endLine'])
             unique_key = node['ruleId'] + '-' + node['fingerprints']['0']        
             item = self.get_item(unique_key, title, description, mitigation, vuln_path, score, cwes, test)
             items[unique_key] = item
