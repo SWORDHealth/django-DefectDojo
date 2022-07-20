@@ -95,9 +95,12 @@ class SnykCodeParser(object):
                 mitigation = '# ' + mitigation_divider + '\n' + details.split(mitigation_divider)[1].strip()
             details = details.replace('\n## Details', '\n## General Description')
             description = details.split(mitigation_divider)[0].strip()
-            description += '## Vulnerability Details'
+            last_two_chars = description[-2]
+            size = len(description)
+            if last_two_chars == '\n':
+                description = description[:size - 2]
+            description += '\n## Vulnerability Details'
             description += '\n' + message
-            description += '\n### Vulnerable Code'
             score = node['properties']['priorityScore']
             cwes = rule['properties']['cwe']
             vuln_path = ''
