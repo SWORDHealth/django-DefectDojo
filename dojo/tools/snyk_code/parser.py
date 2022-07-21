@@ -97,19 +97,22 @@ class SnykCodeParser(object):
             # parses general info about vulnerability type
             mitigation_dividers = ['Best practices for prevention', 'How to prevent']
             details = rule['help']['markdown']
-            details = details.replace('## Details', '## General Info')
+            description += '\n## General Info'
+            details = details.replace('## Details', '')
+            general_info = ''
             for divider in mitigation_dividers:
                 if divider in details:
-                    details += details.split(divider)[0].strip()
-            description += details
+                    general_info = details.split(divider)[0].strip()
+            description += general_info
 
             # parses mitigation
             mitigation = ''
             for divider in mitigation_dividers:
                 if divider in details:
                     mitigation = '# ' + divider + '\n' + details.split(divider)[1].strip() + '\n'
+        
             if rule['properties'] is not None and rule['properties']['exampleCommitFixes'] is not None:
-                mitigation += '\n### Example Commit Fixes'     
+                mitigation += '\n## Example Commit Fixes'
                 for example in rule['properties']['exampleCommitFixes']:
                     mitigation += '\n- [' + example['commitURL'] + '](' + example['commitURL'] + ')'
 
