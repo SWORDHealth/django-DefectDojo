@@ -92,10 +92,8 @@ class SnykCodeParser(object):
             title = rule['shortDescription']['text']
 
             # parses vulnerability details
-            description = ''
-            message = node['message']['text']
-            if message is not None and message != '':
-                description += '\n## Vulnerability Details\n' + message
+            message = node['message']['text'] or 'N/A'
+            description = '\n## Vulnerability Details\n' + message
 
             # parses general info about vulnerability type
             mitigation_dividers = ['Best practices for prevention', 'How to prevent']
@@ -111,6 +109,10 @@ class SnykCodeParser(object):
             for divider in mitigation_dividers:
                 if divider in details:
                     mitigation = '# ' + divider + '\n' + details.split(divider)[1].strip() + '\n'
+            if node['properties']['exampleCommitFixes'] is not None:
+                mitigation += '\n### Example Commit Fixes'                
+                for example in node['properties']['exampleCommitFixes']:
+                    mitigation += '\n' + example['commitURL']
 
             # parses vulnerable filepath
             vuln_path = ''
