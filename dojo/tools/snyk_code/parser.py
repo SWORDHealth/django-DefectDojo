@@ -149,7 +149,7 @@ class SnykCodeParser(object):
         except:
             score = 0
         severity = self.get_severity_for_score(score)
-        severity_justification = "Issue severity of: **" + severity + "** from a base CVSS score of: **" + str(score) + "**"
+        severity_justification = "Issue severity of: **" + severity + "** from a base priority score of: **" + str(score) + "**"
 
 
         component_name = 'unknown'
