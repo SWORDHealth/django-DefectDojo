@@ -109,9 +109,9 @@ class SnykCodeParser(object):
             for divider in mitigation_dividers:
                 if divider in details:
                     mitigation = '# ' + divider + '\n' + details.split(divider)[1].strip() + '\n'
-            if node['properties']['exampleCommitFixes'] is not None:
-                mitigation += '\n### Example Commit Fixes'                
-                for example in node['properties']['exampleCommitFixes']:
+            if rule['properties'] is not None and rule['properties']['exampleCommitFixes'] is not None:
+                mitigation += '\n### Example Commit Fixes'     
+                for example in rule['properties']['exampleCommitFixes']:
                     mitigation += '\n' + example['commitURL']
 
             # parses vulnerable filepath
