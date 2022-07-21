@@ -100,7 +100,7 @@ class SnykCodeParser(object):
             details = details.replace('## Details', '## General Info')
             for divider in mitigation_dividers:
                 if divider in details:
-                    details = details.split(divider)[0].strip()
+                    details += details.split(divider)[0].strip()
             description += details
 
             # parses mitigation
