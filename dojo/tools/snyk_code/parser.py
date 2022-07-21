@@ -85,31 +85,60 @@ class SnykCodeParser(object):
                 raise Exception("Unable to find rule that matches result")
             elif len(rule) > 1:
                 raise Exception("Found more that one rule that matches result")
+
             rule = rule[0]
+            unique_key = node['ruleId'] + '-' + node['fingerprints']['0']
             title = rule['shortDescription']['text']
+
+            # parses vulnerability details
+            message = node['message']['text'] or 'N/A'
+            description = '\n## Vulnerability Details\n' + message
+
+            # parses general info about vulnerability type
+            mitigation_dividers = ['Best practices for prevention', 'How to prevent']
             details = rule['help']['markdown']
-            message = node['message']['text']
-            mitigation_divider = 'Best practices for prevention'
+            description += '\n## General Info\n'
+            details = details.replace('## Details', '')
+            general_info = ''
+            for divider in mitigation_dividers:
+                if divider in details:
+                    general_info = details.split(divider)[0].strip()
+            description += general_info
+
+            # parses mitigation
             mitigation = ''
-            if mitigation_divider in details:
-                mitigation = '# ' + mitigation_divider + '\n' + details.split(mitigation_divider)[1].strip()
-            details = details.replace('\n## Details', '\n## General Description')
-            description = details.split(mitigation_divider)[0].strip()
-            last_two_chars = description[-2]
-            size = len(description)
-            if last_two_chars == '\n':
-                description = description[:size - 2]
-            description += '\n## Vulnerability Details'
-            description += '\n' + message
-            score = node['properties']['priorityScore']
-            cwes = rule['properties']['cwe']
+            for divider in mitigation_dividers:
+                if divider in details:
+                    mitigation = '# ' + divider + '\n' + details.split(divider)[1].strip() + '\n'
+        
+            if rule['properties'] is not None and rule['properties']['exampleCommitFixes'] is not None:
+                mitigation += '\n## Example Commit Fixes'
+                for example in rule['properties']['exampleCommitFixes']:
+                    mitigation += '\n- [' + example['commitURL'] + '](' + example['commitURL'] + ')'
+
+            # parses vulnerable filepath
             vuln_path = ''
             for location in node['locations']:
                 vuln_path += location['physicalLocation']['artifactLocation']['uri']
                 vuln_path += '#L' + str(location['physicalLocation']['region']['startLine'])
                 vuln_path += '-L' + str(location['physicalLocation']['region']['endLine'])
-            unique_key = node['ruleId'] + '-' + node['fingerprints']['0']        
-            item = self.get_item(unique_key, title, description, mitigation, vuln_path, score, cwes, test)
+
+            # parses severity score
+            score = node['properties']['priorityScore']
+
+            # parses cwe
+            cwes = rule['properties']['cwe']
+
+            item = self.get_item(
+                unique_key=unique_key, 
+                title=title, 
+                description=description, 
+                mitigation=mitigation, 
+                vuln_path=vuln_path, 
+                score=score, 
+                cwes=cwes, 
+                test=test
+            )
             items[unique_key] = item
         return list(items.values())
 
@@ -132,6 +161,7 @@ class SnykCodeParser(object):
             test=test,
             severity=severity,
             severity_justification=severity_justification,
+            file_path=vuln_path,
             description=description,
             mitigation=mitigation,
             component_name=component_name,
@@ -142,7 +172,6 @@ class SnykCodeParser(object):
             impact=severity,
             static_finding=True,
             dynamic_finding=False,
-            file_path=vuln_path,
             vuln_id_from_tool=unique_key
         )
 
