@@ -1,5 +1,4 @@
 import json
-from pydoc import describe
 
 from cvss.cvss3 import CVSS3
 from dojo.models import Finding
