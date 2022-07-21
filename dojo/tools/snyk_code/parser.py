@@ -97,7 +97,7 @@ class SnykCodeParser(object):
             # parses general info about vulnerability type
             mitigation_dividers = ['Best practices for prevention', 'How to prevent']
             details = rule['help']['markdown']
-            description += '\n## General Info'
+            description += '\n## General Info\n'
             details = details.replace('## Details', '')
             general_info = ''
             for divider in mitigation_dividers:
