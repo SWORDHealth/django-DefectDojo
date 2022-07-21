@@ -130,7 +130,7 @@ class SnykCodeParser(object):
             item = self.get_item(
                 unique_key=unique_key, 
                 title=title, 
-                description=details, 
+                description=description, 
                 mitigation=mitigation, 
                 vuln_path=vuln_path, 
                 score=score, 
