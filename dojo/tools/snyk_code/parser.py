@@ -131,6 +131,7 @@ class SnykCodeParser(object):
             try:
                 cwe = int(rule['properties']['cwe'][0].split('CWE-')[1])
             except:
+                # TODO: check if we can actually suppress this field
                 cwe = 913
 
             item = self.get_item(
