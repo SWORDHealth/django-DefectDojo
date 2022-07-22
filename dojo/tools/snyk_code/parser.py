@@ -127,7 +127,11 @@ class SnykCodeParser(object):
             score = node['properties']['priorityScore']
 
             # parses cwe
-            cwes = rule['properties']['cwe']
+
+            try:
+                cwe = int(rule['properties']['cwe'][0].split('CWE-')[1])
+            except:
+                cwe = 913
 
             item = self.get_item(
                 unique_key=unique_key, 
@@ -136,13 +140,13 @@ class SnykCodeParser(object):
                 mitigation=mitigation, 
                 vuln_path=vuln_path, 
                 score=score, 
-                cwes=cwes, 
+                cwe=cwe, 
                 test=test
             )
             items[unique_key] = item
         return list(items.values())
 
-    def get_item(self, unique_key, title, description, mitigation, vuln_path, score, cwes, test):
+    def get_item(self, unique_key, title, description, mitigation, vuln_path, score, cwe, test):
 
         try:
             score = int(score)
@@ -174,11 +178,6 @@ class SnykCodeParser(object):
             dynamic_finding=False,
             vuln_id_from_tool=unique_key
         )
-
-        try:
-            cwe = int(cwes[0].split('CWE-')[1])
-        except:
-            cwe = 913
 
         finding.cwe = cwe
         finding.references = 'N/A'
