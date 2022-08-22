@@ -127,7 +127,7 @@ class SnykCodeParser(object):
                 description=description,
                 mitigation=mitigation,
                 vuln_path=vuln_path,
-                score=score,
+                int_score_value=score,
                 cwe=cwe,
                 test=test
             )
@@ -146,14 +146,14 @@ class SnykCodeParser(object):
         test
     ):
 
-        score = 0
+        int_score_value = 0
         try:
-            score = int(score)
+            int_score_value = int(score)
         except Exception as exception:
             raise Exception('Unable to parse score for finding!') from exception
 
-        severity = self._get_severity_for_score(score)
-        severity_justification = "Issue severity of: **" + severity + "** from a base priority score of: **" + str(score) + "**"
+        severity = self._get_severity_for_score(int_score_value)
+        severity_justification = f'Issue severity of: **{severity}** from a base priority score of: **{int_score_value}**'
 
         # create the finding object
         finding = Finding(
