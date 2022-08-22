@@ -127,7 +127,7 @@ class SnykCodeParser(object):
                 description=description,
                 mitigation=mitigation,
                 vuln_path=vuln_path,
-                int_score_value=score,
+                score=score,
                 cwe=cwe,
                 test=test
             )
