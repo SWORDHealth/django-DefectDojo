@@ -15,9 +15,7 @@ class SnykCodeParser(object):
         return "Snyk Code output file (snyk code test --json > snyk.json) can be imported in JSON format."
 
     def get_findings(self, json_output, test):
-
         reportTree = self.parse_json(json_output)
-
         if type(reportTree) is list:
             temp = []
             for moduleTree in reportTree:
@@ -44,16 +42,6 @@ class SnykCodeParser(object):
 
         return tree
 
-    def get_severity_for_score(self, score):
-        # Following the CVSS Scoring per https://nvd.nist.gov/vuln-metrics/cvss
-        if score <= 390:
-            return 'Low'
-        elif score >= 400 and score < 690:
-            return 'Medium'
-        elif score >= 700 and score < 890:
-            return 'High'
-        return 'Critical'
-
     def get_items(self, tree, test):
 
         items = {}
@@ -78,7 +66,6 @@ class SnykCodeParser(object):
         if 'rules' not in driver:
             raise Exception("Unable to find rules in tree")
         rules = driver['rules']
-
         for node in results:
             rule = [a for a in rules if a['id'] == node['ruleId']]
             if len(rule) == 0:
@@ -128,59 +115,70 @@ class SnykCodeParser(object):
 
             # parses cwe
 
+            cwe: int = None
             try:
                 cwe = int(rule['properties']['cwe'][0].split('CWE-')[1])
             except:
-                # TODO: check if we can actually suppress this field
-                cwe = 913
+                pass
 
             item = self.get_item(
-                unique_key=unique_key, 
-                title=title, 
-                description=description, 
-                mitigation=mitigation, 
-                vuln_path=vuln_path, 
-                score=score, 
-                cwe=cwe, 
+                unique_key=unique_key,
+                title=title,
+                description=description,
+                mitigation=mitigation,
+                vuln_path=vuln_path,
+                score=score,
+                cwe=cwe,
                 test=test
             )
             items[unique_key] = item
         return list(items.values())
 
-    def get_item(self, unique_key, title, description, mitigation, vuln_path, score, cwe, test):
+    def get_item(
+        self,
+        unique_key: str,
+        title: str,
+        description: str,
+        mitigation: str,
+        vuln_path: str,
+        score,
+        cwe: int,
+        test
+    ):
 
+        score = 0
         try:
             score = int(score)
-        except:
-            score = 0
-        severity = self.get_severity_for_score(score)
+        except Exception as exception:
+            raise Exception('Unable to parse score for finding!') from exception
+
+        severity = self._get_severity_for_score(score)
         severity_justification = "Issue severity of: **" + severity + "** from a base priority score of: **" + str(score) + "**"
-
-
-        component_name = 'unknown'
-        component_version = 'unknown'
 
         # create the finding object
         finding = Finding(
             title=title,
+            cwe=cwe,
             test=test,
             severity=severity,
             severity_justification=severity_justification,
             file_path=vuln_path,
             description=description,
             mitigation=mitigation,
-            component_name=component_name,
-            component_version=component_version,
-            false_p=False,
-            duplicate=False,
             out_of_scope=False,
             impact=severity,
             static_finding=True,
             dynamic_finding=False,
             vuln_id_from_tool=unique_key
         )
-
-        finding.cwe = cwe
-        finding.references = 'N/A'
-
         return finding
+
+    def _get_severity_for_score(self, score: int) -> str:
+        # Following the CVSS Scoring per https://nvd.nist.gov/vuln-metrics/cvss
+        if score <= 390:
+            return 'Low'
+        elif score >= 400 and score < 690:
+            return 'Medium'
+        elif score >= 700 and score < 890:
+            return 'High'
+        return 'Critical'
