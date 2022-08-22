@@ -123,7 +123,7 @@ class SnykCodeParser(object):
 
             item = self.get_item(
                 unique_key=unique_key,
-                title=title,
+                title=(title + ' on ' + vuln_path) if vuln_path != '' else title,
                 description=description,
                 mitigation=mitigation,
                 vuln_path=vuln_path,
