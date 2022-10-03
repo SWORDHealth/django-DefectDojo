@@ -1706,11 +1706,12 @@ pre code {
 
 pre.codehilite {
     background: #272822 !important;
+    padding: 10px;
 }
 
 pre.codehilite code {
     color: #f8f8f2;
     border-radius: 0.3em;
-    padding: 4px 5px 6px;
+    padding: 0x;
     white-space: pre-wrap;
 }
