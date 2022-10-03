@@ -851,7 +851,6 @@ td .fa-fw {
 .view-finding .panel-body pre, .endpoints pre {
     background-color: transparent;
     border: 0px;
-    padding: 0px;
     white-space: pre-wrap;
     white-space: -moz-pre-wrap;
     white-space: -pre-wrap;
@@ -1688,4 +1687,29 @@ input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+
+/* sword custom code */
+
+.view-finding .panel-body pre p {
+    line-height: 30px;
+}
+
+pre code {
+    background-color: #272822;
+    color: #f8f8f2;
+    border-radius: 0.3em;
+    padding: 4px 5px 6px;
+    white-space: nowrap;
+}
+
+pre.codehilite {
+    background: #272822 !important;
+}
+
+pre.codehilite code {
+    color: #f8f8f2;
+    border-radius: 0.3em;
+    padding: 4px 5px 6px;
+    white-space: pre-wrap;
 }
