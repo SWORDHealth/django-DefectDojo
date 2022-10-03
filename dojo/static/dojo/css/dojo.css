@@ -851,6 +851,7 @@ td .fa-fw {
 .view-finding .panel-body pre, .endpoints pre {
     background-color: transparent;
     border: 0px;
+    padding: 0px;
     white-space: pre-wrap;
     white-space: -moz-pre-wrap;
     white-space: -pre-wrap;
