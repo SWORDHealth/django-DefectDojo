@@ -1693,11 +1693,16 @@ input[type=number]::-webkit-outer-spin-button {
 /* sword custom code */
 
 .view-finding .panel-body pre p {
-    line-height: 30px;
+    line-height: 20px;
+    margin: 0px 0px;
+}
+
+.view-finding .panel-body pre a {
+    text-decoration: underline !important;
 }
 
 pre code {
-    background-color: #272822;
+    background-color: darkslategrey;
     color: #f8f8f2;
     border-radius: 0.3em;
     padding: 4px 5px 6px;
@@ -1705,8 +1710,9 @@ pre code {
 }
 
 pre.codehilite {
-    background: #272822 !important;
+    background: darkslategrey !important;
     padding: 10px !important;
+    max-width: 600px;
 }
 
 pre.codehilite code {
