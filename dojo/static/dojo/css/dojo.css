@@ -1692,9 +1692,17 @@ input[type=number]::-webkit-outer-spin-button {
 
 /* sword custom code */
 
+.view-finding .panel-body pre {
+    margin: 0px 0px;
+}
+
 .view-finding .panel-body pre p {
     line-height: 20px;
     margin: 0px 0px;
+}
+
+.view-finding .panel-body pre h1 {
+    font-size: 25px;
 }
 
 .view-finding .panel-body pre a {
@@ -1702,21 +1710,22 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 pre code {
-    background-color: darkslategrey;
+    background-color: lightgray;
     color: #f8f8f2;
     border-radius: 0.3em;
-    padding: 4px 5px 6px;
+    padding: 2px 5px;
     white-space: nowrap;
 }
 
 pre.codehilite {
     background: darkslategrey !important;
-    padding: 10px !important;
-    max-width: 600px;
+    padding: 15px !important;
+    max-width: fit-content;
 }
 
 pre.codehilite code {
-    color: #f8f8f2;
+    background-color: darkslategrey;
+    color: black;
     border-radius: 0.3em;
     padding: 0px;
     white-space: pre-wrap;
