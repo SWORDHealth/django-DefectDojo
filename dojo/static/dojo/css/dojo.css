@@ -1711,7 +1711,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 pre code {
     background-color: lightgray;
-    color: #f8f8f2;
+    color: black;
     border-radius: 0.3em;
     padding: 2px 5px;
     white-space: nowrap;
@@ -1725,7 +1725,7 @@ pre.codehilite {
 
 pre.codehilite code {
     background-color: darkslategrey;
-    color: black;
+    color: white;
     border-radius: 0.3em;
     padding: 0px;
     white-space: pre-wrap;
