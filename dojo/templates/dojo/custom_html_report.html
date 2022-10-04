@@ -11,6 +11,7 @@
         .container {
             margin: 0 auto;
             max-width: 960px;
+            margin-bottom: 50px;
         }
 
         .page-cover {
@@ -116,24 +117,6 @@
             padding-bottom: 0;
         }
 
-        pre, p {
-            padding: 0;
-            border: 0;
-            background-color: transparent;
-            page-break-inside: auto;
-            margin-bottom: 15px !important;
-        }
-
-        pre {
-            white-space: pre-wrap !important;
-            padding: 0 !important;
-            overflow: visible !important;
-        }
-
-        ul{
-            margin-bottom: 15px !important;
-        }
-
         h4, .h4, h5, .h5, h6, .h6 {
             margin-top: 20px;
             margin-bottom: 11px;
@@ -144,7 +127,6 @@
         }
 
         *, pre {
-            font-family: 'Roboto Slab', monospace !important;
             font-size: 14px;
         }
 
@@ -156,16 +138,16 @@
             color: black;
         }
 
-        .raw_request {
-            font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace !important;
-        }
-
         b {
             font-weight: 900 !important;
             color: black;
         }
 
         /* custom code */
+
+        .finding-title {
+            padding: 10px;
+        }
 
         .finding-title h5 {
             font-size: 30px;
@@ -175,28 +157,58 @@
             text-decoration: none;
         }
 
+        .finding-title span .label.severity {
+            color: black;
+        }
+
+        .finding-title sup {
+            top: -0.35em !important;
+            font-weight: 100;
+        }
+
         h6 {
             font-size: 22px;
         }
 
-        pre h1 {
-            font-size: 25px;
+        pre {
+            background-color:#fafafa;
+            white-space: break-spaces;
+            overflow: visible !important;
         }
 
         pre * {
             font-size: 16px;
+            font-family: Menlo, Monaco, Consolas, "Courier New",monospace !important;
+            -webkit-margin-before: 0em;
+            -webkit-margin-after: 0em;
+            white-space: pre-wrap;
+        }
+
+        pre h1 {
+            font-size: 20px;
         }
 
         pre a {
             text-decoration: underline !important;
         }
 
+        pre ul {
+            line-height: normal;
+            margin: 0 0 !important;
+        }
+
+        pre ol {
+            line-height: normal;
+            margin: 0 0 !important;
+        }
+
         pre code {
+            margin-top: -25px;
+            margin-bottom: -25px !important;
             background-color: lightgray;
             color: black;
             border-radius: 0.3em;
             padding: 2px 5px;
-            white-space: nowrap;
         }
         
         pre.codehilite {
@@ -210,7 +222,6 @@
             color: white;
             border-radius: 0.3em;
             padding: 0px;
-            white-space: pre-wrap;
         }
 
     </style>
