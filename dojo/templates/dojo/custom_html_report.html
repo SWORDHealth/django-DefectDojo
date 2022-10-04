@@ -64,6 +64,7 @@
 
         .severity-Medium {
             background-color: #FBE413;
+            color: black;
         }
 
         .severity-High {
@@ -82,7 +83,7 @@
             page-break-after: always
         }
 
-        .report-page-break{
+        .report-page-break {
             border: 0;
             height: 0px;
             page-break-after: always;
@@ -106,35 +107,21 @@
             width: 898px;
         }
 
-        h6{
-            font-size: 120%;
-            border-bottom: 1px solid black;
-            padding-bottom: 8px;
-        }
 
-        .panel-heading h6{
+        .panel-heading h6 {
             border-bottom: 0;
             padding-bottom: 0;
-        }
-
-        h4, .h4, h5, .h5, h6, .h6 {
-            margin-top: 20px;
-            margin-bottom: 11px;
         }
 
         div.pretty-graphs, .panel, .panel-body {
             page-break-inside: avoid;
         }
 
-        *, pre {
-            font-size: 14px;
-        }
-
         .flot-tick-label.tickLabel {
             font-size: 11px;
         }
 
-        .panel-warning .panel-heading h4{
+        .panel-warning .panel-heading h4 {
             color: black;
         }
 
@@ -143,7 +130,7 @@
             color: black;
         }
 
-        /* sword customization */
+        /* sword custom code */
 
         .finding-title {
             padding: 10px;
@@ -168,20 +155,17 @@
 
         h6 {
             font-size: 22px;
+            border-bottom: 1px solid black;
+            padding-bottom: 8px;
         }
 
         pre {
             background-color:#fafafa;
-            white-space: break-spaces;
-            overflow: visible !important;
         }
 
         pre * {
-            font-size: 16px;
-            font-family: Menlo, Monaco, Consolas, "Courier New",monospace !important;
-            -webkit-margin-before: 0em;
             -webkit-margin-after: 0em;
-            white-space: pre-wrap;
+            white-space: normal;
         }
 
         pre h1 {
@@ -193,12 +177,10 @@
         }
 
         pre ul {
-            line-height: normal;
             margin: 0 0 !important;
         }
 
         pre ol {
-            line-height: normal;
             margin: 0 0 !important;
         }
 
