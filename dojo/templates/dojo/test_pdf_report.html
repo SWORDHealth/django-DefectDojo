@@ -11,11 +11,10 @@
     <div class="container">
         <div class="row">
           <div class="col-lg-12">
-              <h3 id="product">Test Security Report for {{ test }}</h3>
+              <h3 id="product">{{ test.engagement.name }}</h3>
               <p>
-                <strong>Engagement:</strong> {{ test.engagement.name }}
-                <br><strong>Test:</strong> {{ test }}
-                <br><strong>Generated:</strong> {% display_date %}
+                <br>{{ test }}
+                <br>{% display_date %}
               </p>
           </div>
         </div>
