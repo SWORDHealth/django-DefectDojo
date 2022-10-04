@@ -164,6 +164,55 @@
             font-weight: 900 !important;
             color: black;
         }
+
+        /* custom code */
+
+        .finding-title h5 {
+            font-size: 30px;
+            text-decoration: none;
+        }
+        .finding-title h5:hover {
+            text-decoration: none;
+        }
+
+        h6 {
+            font-size: 22px;
+        }
+
+        pre h1 {
+            font-size: 25px;
+        }
+
+        pre * {
+            font-size: 16px;
+        }
+
+        pre a {
+            text-decoration: underline !important;
+        }
+
+        pre code {
+            background-color: lightgray;
+            color: black;
+            border-radius: 0.3em;
+            padding: 2px 5px;
+            white-space: nowrap;
+        }
+        
+        pre.codehilite {
+            background: darkslategrey !important;
+            padding: 15px !important;
+            max-width: fit-content;
+        }
+
+        pre.codehilite code {
+            background-color: darkslategrey;
+            color: white;
+            border-radius: 0.3em;
+            padding: 0px;
+            white-space: pre-wrap;
+        }
+
     </style>
 {% block content %}
     {{ block.super }}

@@ -1,13 +1,11 @@
 import logging
 import re
 import csv
+
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from tempfile import NamedTemporaryFile
-
-
 from datetime import datetime
-
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.http import Http404, HttpResponseForbidden, HttpResponse, QueryDict
@@ -31,10 +29,8 @@ from dojo.finding.views import get_filtered_findings
 
 logger = logging.getLogger(__name__)
 
-
 def down(request):
     return render(request, 'disabled.html')
-
 
 def report_url_resolver(request):
     try:
@@ -80,8 +76,14 @@ def custom_report(request):
     form = CustomReportJsonForm(request.POST)
     host = report_url_resolver(request)
     if form.is_valid():
-        selected_widgets = report_widget_factory(json_data=request.POST['json'], request=request, user=request.user,
-                                                 finding_notes=False, finding_images=False, host=host)
+        selected_widgets = report_widget_factory(
+            json_data=request.POST['json'],
+            request=request,
+            user=request.user,
+            finding_notes=False,
+            finding_images=False,
+            host=host
+        )
         report_format = 'AsciiDoc'
         finding_notes = True
         finding_images = True
@@ -92,27 +94,39 @@ def custom_report(request):
             finding_notes = (options.include_finding_notes == '1')
             finding_images = (options.include_finding_images == '1')
 
-        selected_widgets = report_widget_factory(json_data=request.POST['json'], request=request, user=request.user,
-                                                 finding_notes=finding_notes, finding_images=finding_images, host=host)
-
+        selected_widgets = report_widget_factory(
+            json_data=request.POST['json'],
+            request=request,
+            user=request.user,
+            finding_notes=finding_notes,
+            finding_images=finding_images,
+            host=host
+        )
         if report_format == 'AsciiDoc':
             widgets = list(selected_widgets.values())
-            return render(request,
-                          'dojo/custom_asciidoc_report.html',
-                          {"widgets": widgets,
-                           "host": host,
-                           "finding_notes": finding_notes,
-                           "finding_images": finding_images,
-                           "user_id": request.user.id})
+            return render(
+                request,
+                'dojo/custom_asciidoc_report.html',
+                {
+                    "widgets": widgets,
+                    "host": host,
+                    "finding_notes": finding_notes,
+                    "finding_images": finding_images,
+                    "user_id": request.user.id
+                }
+            )
         elif report_format == 'HTML':
             widgets = list(selected_widgets.values())
             return render(request,
-                          'dojo/custom_html_report.html',
-                          {"widgets": widgets,
-                           "host": host,
-                           "finding_notes": finding_notes,
-                           "finding_images": finding_images,
-                           "user_id": request.user.id})
+                'dojo/custom_html_report.html',
+                {
+                    "widgets": widgets,
+                    "host": host,
+                    "finding_notes": finding_notes,
+                    "finding_images": finding_images,
+                    "user_id": request.user.id
+                }
+            )
         else:
             return HttpResponseForbidden()
     else:
@@ -479,8 +493,13 @@ def generate_report(request, obj, host_view=False):
     elif type(obj).__name__ == "Engagement":
         logger.debug('generating report for Engagement')
         engagement = obj
-        findings = ReportFindingFilter(request.GET, engagement=engagement,
-                                       queryset=prefetch_related_findings_for_report(Finding.objects.filter(test__engagement=engagement)))
+        findings = ReportFindingFilter(
+            request.GET,
+            engagement=engagement,
+            queryset=prefetch_related_findings_for_report(
+                Finding.objects.filter(test__engagement=engagement)
+            )
+        )
         report_name = "Engagement Report: " + str(engagement)
         template = 'dojo/engagement_pdf_report.html'
         report_title = "Engagement Report"
@@ -490,22 +509,24 @@ def generate_report(request, obj, host_view=False):
         tests = Test.objects.filter(finding__id__in=ids).distinct()
         endpoints = Endpoint.objects.filter(product=engagement.product).distinct()
 
-        context = {'engagement': engagement,
-                   'tests': tests,
-                   'report_name': report_name,
-                   'findings': findings.qs.distinct().order_by('numerical_severity'),
-                   'include_finding_notes': include_finding_notes,
-                   'include_finding_images': include_finding_images,
-                   'include_executive_summary': include_executive_summary,
-                   'include_table_of_contents': include_table_of_contents,
-                   'include_disclaimer': include_disclaimer,
-                   'disclaimer': disclaimer,
-                   'user': user,
-                   'team_name': settings.TEAM_NAME,
-                   'title': report_title,
-                   'host': report_url_resolver(request),
-                   'user_id': request.user.id,
-                   'endpoints': endpoints}
+        context = {
+            'engagement': engagement,
+            'tests': tests,
+            'report_name': report_name,
+            'findings': findings.qs.distinct().order_by('numerical_severity'),
+            'include_finding_notes': include_finding_notes,
+            'include_finding_images': include_finding_images,
+            'include_executive_summary': include_executive_summary,
+            'include_table_of_contents': include_table_of_contents,
+            'include_disclaimer': include_disclaimer,
+            'disclaimer': disclaimer,
+            'user': user,
+            'team_name': settings.TEAM_NAME,
+            'title': report_title,
+            'host': report_url_resolver(request),
+            'user_id': request.user.id,
+            'endpoints': endpoints
+        }
 
     elif type(obj).__name__ == "Test":
         test = obj
@@ -590,7 +611,6 @@ def generate_report(request, obj, host_view=False):
         raise Http404()
 
     report_form = ReportOptionsForm()
-
     if generate:
         report_form = ReportOptionsForm(request.GET)
         if report_format == 'AsciiDoc':

@@ -178,9 +178,14 @@ class CoverPage(Widget):
         self.help_text = "The cover page includes a page break after its content."
 
     def get_html(self):
-        return render_to_string("dojo/custom_html_report_cover_page.html", {"heading": self.title,
-                                                                                "sub_heading": self.sub_heading,
-                                                                                "meta_info": self.meta_info})
+        return render_to_string(
+            "dojo/custom_html_report_cover_page.html",
+            {
+                "heading": self.title,
+                "sub_heading": self.sub_heading,
+                "meta_info": self.meta_info
+            }
+        )
 
     def get_asciidoc(self):
         return render_to_string("dojo/custom_asciidoc_report_cover_page.html", {"heading": self.title,
@@ -385,20 +390,27 @@ class EndpointList(Widget):
         return mark_safe(html)
 
 
-def report_widget_factory(json_data=None, request=None, user=None, finding_notes=False, finding_images=False,
-                          host=None):
+def report_widget_factory(
+    json_data=None,
+    request=None,
+    user=None,
+    finding_notes=False,
+    finding_images=False,
+    host=None
+):
     selected_widgets = OrderedDict()
     widgets = json.loads(json_data)
     for idx, widget in enumerate(widgets):
         if list(widget.keys())[0] == 'page-break':
             selected_widgets[list(widget.keys())[0] + '-' + str(idx)] = PageBreak()
         if list(widget.keys())[0] == 'endpoint-list':
-            endpoints = Endpoint.objects.filter(finding__active=True,
-                                                finding__verified=True,
-                                                finding__false_p=False,
-                                                finding__duplicate=False,
-                                                finding__out_of_scope=False,
-                                                ).distinct()
+            endpoints = Endpoint.objects.filter(
+                finding__active=True,
+                finding__verified=True,
+                finding__false_p=False,
+                finding__duplicate=False,
+                finding__out_of_scope=False,
+            ).distinct()
             d = QueryDict(mutable=True)
             for item in widget.get(list(widget.keys())[0]):
                 if item['name'] in d:
