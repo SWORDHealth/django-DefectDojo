@@ -21,10 +21,8 @@ Widgets are content sections that can be included on reports.  The report builde
  to be included.  Each widget will provide a set of options, reporesented by form elements, to be included.
 """
 
-
 class CustomReportJsonForm(forms.Form):
     json = forms.CharField()
-
     def clean_json(self):
         jdata = self.cleaned_data['json']
         try:
@@ -33,15 +31,25 @@ class CustomReportJsonForm(forms.Form):
             raise forms.ValidationError("Invalid data in json")
         return jdata
 
-
 class CoverPageForm(forms.Form):
-    heading = forms.CharField(max_length=200, required=False, help_text="The main report heading.")
-    sub_heading = forms.CharField(max_length=200, required=False, help_text="The report sub heading.")
-    meta_info = forms.CharField(max_length=200, required=False, help_text="Additional metadata for this report.")
+    heading = forms.CharField(
+        max_length=200,
+        required=False,
+        help_text="The main report heading."
+    )
+    sub_heading = forms.CharField(
+        max_length=200,
+        required=False,
+        help_text="The report sub heading."
+    )
+    meta_info = forms.CharField(
+        max_length=200,
+        required=False,
+        help_text="Additional metadata for this report."
+    )
 
     class Meta:
         exclude = []
-
 
 class TableOfContentsForm(forms.Form):
     heading = forms.CharField(max_length=200, required=False, initial="Table of Contents")
@@ -127,7 +135,6 @@ class Widget(object):
     def get_option_form(self):
         return
 
-
 class PageBreak(Widget):
     def __init__(self, *args, **kwargs):
         super(PageBreak, self).__init__(*args, **kwargs)
@@ -148,7 +155,6 @@ class PageBreak(Widget):
             self.get_html() + "</h5><span class='fa fa-arrows pull-right icon'></span></div></div>"
                               "<form id='page-break'><input type='hidden' name='page-break'/></form></div>")
 
-
 class ReportOptions(Widget):
     def __init__(self, *args, **kwargs):
         super(ReportOptions, self).__init__(*args, **kwargs)
@@ -163,12 +169,15 @@ class ReportOptions(Widget):
         return mark_safe('')
 
     def get_option_form(self):
-        html = render_to_string("dojo/report_widget.html", {"form": self.form,
-                                                            "multiple": self.multiple,
-                                                            "title": self.title,
-                                                            "extra_help": self.extra_help})
+        html = render_to_string(
+            "dojo/report_widget.html", {
+                "form": self.form,
+                "multiple": self.multiple,
+                "title": self.title,
+                "extra_help": self.extra_help
+            }
+        )
         return mark_safe(html)
-
 
 class CoverPage(Widget):
     def __init__(self, *args, **kwargs):
@@ -188,15 +197,23 @@ class CoverPage(Widget):
         )
 
     def get_asciidoc(self):
-        return render_to_string("dojo/custom_asciidoc_report_cover_page.html", {"heading": self.title,
-                                                                                "sub_heading": self.sub_heading,
-                                                                                "meta_info": self.meta_info})
+        return render_to_string(
+            "dojo/custom_asciidoc_report_cover_page.html", {
+                "heading": self.title,
+                "sub_heading": self.sub_heading,
+                "meta_info": self.meta_info
+            }
+        )
 
     def get_option_form(self):
-        html = render_to_string("dojo/report_widget.html", {"form": self.form,
-                                                            "multiple": self.multiple,
-                                                            "title": self.title,
-                                                            'extra_help': self.help_text})
+        html = render_to_string(
+            "dojo/report_widget.html", {
+                "form": self.form,
+                "multiple": self.multiple,
+                "title": self.title,
+                'extra_help': self.help_text
+            }
+        )
         return mark_safe(html)
 
 
@@ -208,18 +225,30 @@ class TableOfContents(Widget):
         self.help_text = "The table of contents includes a page break after its content."
 
     def get_html(self):
-        return render_to_string("dojo/custom_html_toc.html", {"title": self.title,
-                                                                  "depth": self.depth})
+        return render_to_string(
+            "dojo/custom_html_toc.html", {
+                "title": self.title,
+                "depth": self.depth
+            }
+        )
 
     def get_asciidoc(self):
-        return render_to_string("dojo/custom_asciidoc_toc.html", {"title": self.title,
-                                                                  "depth": self.depth})
+        return render_to_string(
+            "dojo/custom_asciidoc_toc.html", {
+                "title": self.title,
+                "depth": self.depth
+            }
+        )
 
     def get_option_form(self):
-        html = render_to_string("dojo/report_widget.html", {"form": self.form,
-                                                            "multiple": self.multiple,
-                                                            "title": self.title,
-                                                            'extra_help': self.help_text})
+        html = render_to_string(
+            "dojo/report_widget.html", {
+                "form": self.form,
+                "multiple": self.multiple,
+                "title": self.title,
+                'extra_help': self.help_text
+            }
+        )
         return mark_safe(html)
 
 
@@ -231,21 +260,32 @@ class WYSIWYGContent(Widget):
         self.multiple = 'true'
 
     def get_html(self):
-        html = render_to_string("dojo/custom_html_report_wysiwyg_content.html", {"title": self.title,
-                                                                                "content": self.content})
+        html = render_to_string(
+            "dojo/custom_html_report_wysiwyg_content.html", {
+                "title": self.title,
+                "content": self.content
+            }
+        )
         return mark_safe(html)
 
     def get_asciidoc(self):
-        asciidoc = render_to_string("dojo/custom_asciidoc_report_wysiwyg_content.html", {"title": self.title,
-                                                                                         "content": self.content})
+        asciidoc = render_to_string(
+            "dojo/custom_asciidoc_report_wysiwyg_content.html", {
+                "title": self.title,
+                "content": self.content
+            }
+        )
         return mark_safe(asciidoc)
 
     def get_option_form(self):
-        html = render_to_string("dojo/report_widget.html", {"form": self.form,
-                                                            "multiple": self.multiple,
-                                                            "title": self.title})
+        html = render_to_string(
+            "dojo/report_widget.html", {
+                "form": self.form,
+                "multiple": self.multiple,
+                "title": self.title
+            }
+        )
         return mark_safe(html)
-
 
 class FindingList(Widget):
     def __init__(self, *args, **kwargs):
@@ -253,25 +293,20 @@ class FindingList(Widget):
             self.request = kwargs.get('request')
         if 'user_id' in kwargs:
             self.user_id = kwargs.get('user_id')
-
         if 'host' in kwargs:
             self.host = kwargs.get('host')
-
         if 'findings' in kwargs:
             self.findings = kwargs.get('findings')
         else:
             raise Exception("Need to instantiate with finding queryset.")
-
         if 'finding_notes' in kwargs:
             self.finding_notes = kwargs.get('finding_notes')
         else:
             self.finding_notes = False
-
         if 'finding_images' in kwargs:
             self.finding_images = kwargs.get('finding_images')
         else:
             self.finding_images = False
-
         super(FindingList, self).__init__(*args, **kwargs)
 
         self.title = 'Finding List'
@@ -291,12 +326,16 @@ class FindingList(Widget):
             self.paged_findings = self.findings
 
     def get_asciidoc(self):
-        asciidoc = render_to_string("dojo/custom_asciidoc_report_findings.html",
-                                    {"findings": self.findings.qs,
-                                     "host": self.host,
-                                     "include_finding_notes": self.finding_notes,
-                                     "include_finding_images": self.finding_images,
-                                     "user_id": self.user_id})
+        asciidoc = render_to_string(
+            "dojo/custom_asciidoc_report_findings.html",
+            {
+                "findings": self.findings.qs,
+                "host": self.host,
+                "include_finding_notes": self.finding_notes,
+                "include_finding_images": self.finding_images,
+                "user_id": self.user_id
+            }
+        )
         return mark_safe(asciidoc)
 
     def get_html(self):
@@ -310,15 +349,18 @@ class FindingList(Widget):
         return mark_safe(html)
 
     def get_option_form(self):
-        html = render_to_string('dojo/report_findings.html',
-                                {"findings": self.paged_findings,
-                                 "filtered": self.findings,
-                                 "title_words": self.title_words,
-                                 "component_words": self.component_words,
-                                 "request": self.request,
-                                 "title": self.title,
-                                 "extra_help": self.extra_help,
-                                 })
+        html = render_to_string(
+            'dojo/report_findings.html',
+            {
+                "findings": self.paged_findings,
+                "filtered": self.findings,
+                "title_words": self.title_words,
+                "component_words": self.component_words,
+                "request": self.request,
+                "title": self.title,
+                "extra_help": self.extra_help,
+            }
+        )
         return mark_safe(html)
 
 
@@ -389,7 +431,6 @@ class EndpointList(Widget):
                                  })
         return mark_safe(html)
 
-
 def report_widget_factory(
     json_data=None,
     request=None,
@@ -423,8 +464,14 @@ def report_widget_factory(
             endpoints = Endpoint.objects.filter(id__in=endpoints)
             endpoints = EndpointFilter(d, queryset=endpoints, user=request.user)
             user_id = user.id if user is not None else None
-            endpoints = EndpointList(request=request, endpoints=endpoints, finding_notes=finding_notes,
-                                     finding_images=finding_images, host=host, user_id=user_id)
+            endpoints = EndpointList(
+                request=request,
+                endpoints=endpoints,
+                finding_notes=finding_notes,
+                finding_images=finding_images,
+                host=host,
+                user_id=user_id
+            )
 
             selected_widgets[list(widget.keys())[0] + '-' + str(idx)] = endpoints
 
@@ -439,10 +486,14 @@ def report_widget_factory(
 
             findings = ReportFindingFilter(d, queryset=findings)
             user_id = user.id if user is not None else None
-            selected_widgets[list(widget.keys())[0] + '-' + str(idx)] = FindingList(request=request, findings=findings,
-                                                                              finding_notes=finding_notes,
-                                                                              finding_images=finding_images,
-                                                                              host=host, user_id=user_id)
+            selected_widgets[list(widget.keys())[0] + '-' + str(idx)] = FindingList(
+                request=request,
+                findings=findings,
+                finding_notes=finding_notes,
+                finding_images=finding_images,
+                host=host,
+                user_id=user_id
+            )
 
         if list(widget.keys())[0] == 'wysiwyg-content':
             wysiwyg_content = WYSIWYGContent(request=request)
