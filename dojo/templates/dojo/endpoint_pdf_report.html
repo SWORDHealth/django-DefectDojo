@@ -86,9 +86,6 @@
 		{% endif %}
         <div class="row">
             <div class="col-lg-12">
-                {% if findings %}
-                    <h3 id="findings">Findings</h3>
-                {% endif %}
                 {% for finding in findings %}
                     {% ifchanged finding.severity %}
                         <h4>{{ finding.severity|capfirst }}</h4>
