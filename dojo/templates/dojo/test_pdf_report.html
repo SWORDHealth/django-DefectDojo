@@ -500,7 +500,10 @@
                         closeLevel_t
                     ) {
                         console.log("str :: " + str)
-                        if (str.indexOf('Finding') <= 0) {
+                        finding_index = str.indexOf('Finding')
+                        if (finding_index <= 0) {
+                            return;
+                        } else if (str[finding_index + 9] != ':') {
                             return;
                         }
                         if (openLevel != closeLevel || openLevel > 5) {
