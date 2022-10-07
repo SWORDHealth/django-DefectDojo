@@ -58,7 +58,6 @@ class TableOfContentsForm(forms.Form):
     class Meta:
         exclude = []
 
-
 class Div(form_widget):
     def __init__(self, attrs=None):
         # Use slightly better defaults than HTML's 20x2 box
