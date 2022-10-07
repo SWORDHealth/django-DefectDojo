@@ -195,3 +195,13 @@ pre.codehilite code {
     border-radius: 0.3em;
     padding: 0px;
 }
+
+#table_of_contents + ul {
+    padding-top: 20px;
+    margin-left: -50px;
+    margin-bottom: 40px;
+}
+
+#table_of_contents + ul li {
+    list-style: disc !important;
+}
