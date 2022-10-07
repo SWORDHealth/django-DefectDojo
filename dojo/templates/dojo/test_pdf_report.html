@@ -499,13 +499,6 @@
                         junk,
                         closeLevel_t
                     ) {
-                        console.log("str :: " + str)
-                        finding_index = str.indexOf('Finding')
-                        if (finding_index <= 0) {
-                            return;
-                        } else if (str[finding_index + 9] != ':') {
-                            return;
-                        }
                         if (openLevel != closeLevel || openLevel > 5) {
                             return str;
                         }
@@ -520,10 +513,16 @@
                         } else if (openLevel < level) {
                             toc += (new Array(level - openLevel + 1)).join("</ul>");
                         }
+                        /* ensures that only headings with title `Finding x:` are added to ToC */
+                        /*
+                        finding_index = str.indexOf('Finding')
+                        if (finding_index <= 0 || str[finding_index + 9] != ':') {
+                            return toc;
+                        }
+                        */
                         level = parseInt(openLevel);
                         var anchor = titleText.trim().replace(/ /g, "_");
-                        if (tags)
-                        {
+                        if (tags) {
                             if (['Info', 'Low', 'Medium', 'High', 'Critical'].indexOf(titleText) >= 0) {
                                 toc += "<li><a style=\"font-size:" + (160 - (level * 7)) + "%; color:black;\" href=\"#" + anchor + "\">" +
                                 "<span class=\"label severity severity-" + titleText + "\">" + titleText + "</span></a></li>";
