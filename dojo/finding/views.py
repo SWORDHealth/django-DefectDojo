@@ -2084,6 +2084,7 @@ def promote_to_finding(request, fid):
             new_finding.duplicate = False
             new_finding.mitigated = None
             new_finding.verified = True
+            new_finding.verified_date = timezone.now()
             new_finding.out_of_scope = False
 
             new_finding.save()

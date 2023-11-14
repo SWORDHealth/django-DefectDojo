@@ -307,6 +307,7 @@ def get_finding_filterset_fields(metrics=False, similar=False):
                 'status',
                 'active',
                 'verified',
+                'verified_date',
                 'duplicate',
                 'is_mitigated',
                 'out_of_scope',
@@ -1169,6 +1170,7 @@ class ApiFindingFilter(DojoFilter):
     under_defect_review = BooleanFilter(field_name='under_defect_review')
     under_review = BooleanFilter(field_name='under_review')
     verified = BooleanFilter(field_name='verified')
+    verified_date = DateRangeFilter()
     has_jira = BooleanFilter(field_name='jira_issue', lookup_expr='isnull', exclude=True)
     # CharFilter
     component_version = CharFilter(lookup_expr='icontains')
@@ -1276,6 +1278,7 @@ class ApiFindingFilter(DojoFilter):
             ('under_defect_review', 'under_defect_review'),
             ('under_review', 'under_review'),
             ('verified', 'verified'),
+            ('verified_date', 'verified_date'),
         ),
     )
 
