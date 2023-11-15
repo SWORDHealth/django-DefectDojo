@@ -1278,7 +1278,7 @@ class ApiFindingFilter(DojoFilter):
             ('under_defect_review', 'under_defect_review'),
             ('under_review', 'under_review'),
             ('verified', 'verified'),
-            ('verified_date', 'verified_date'),
+            ('verified_date', 'verified_date')
         ),
     )
 
