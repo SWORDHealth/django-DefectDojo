@@ -2089,7 +2089,6 @@ def promote_to_finding(request, fid):
             new_finding.mitigated = None
             new_finding.verified = True
             new_finding.verified_date = timezone.now()
-            logger.error(new_finding.verified_date)
             new_finding.out_of_scope = False
 
             new_finding.save()
