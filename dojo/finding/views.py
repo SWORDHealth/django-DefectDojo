@@ -969,7 +969,6 @@ class EditFinding(View):
             new_finding.tags = context["form"].cleaned_data["tags"]
             # Handle verified date
             if new_finding.verified is True and new_finding.verified_date is None:
-                logger.error('Updates verification date on process_finding_form')
                 new_finding.verified_date = timezone.now()
             # Handle group related things
             if "group" in context["form"].cleaned_data:
@@ -1342,7 +1341,8 @@ def defect_finding_review(request, fid):
             else:
                 finding.active = True
                 finding.verified = True
-                finding.verified_date = now
+                if finding.verified_date is None:
+                    finding.verified_date = now
                 finding.mitigated = None
                 finding.mitigated_by = None
                 finding.is_mitigated = False
@@ -2090,7 +2090,6 @@ def promote_to_finding(request, fid):
             new_finding.mitigated = None
             new_finding.verified = True
             if new_finding.verified_date is None:
-                logger.error('Updates verification date on promote_to_finding')
                 new_finding.verified_date = timezone.now()
             new_finding.out_of_scope = False
 
