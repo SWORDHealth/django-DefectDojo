@@ -2782,7 +2782,6 @@ def finding_bulk_update_all(request, pid=None):
                             find.active = form.cleaned_data["active"]
                             find.verified = form.cleaned_data["verified"]
                             if find.verified is True and find.verified_date is None:
-                                logger.error('Updates verification date on finding_bulk_update_all')
                                 find.verified_date = timezone.now()
                             find.false_p = form.cleaned_data["false_p"]
                             find.out_of_scope = form.cleaned_data["out_of_scope"]
