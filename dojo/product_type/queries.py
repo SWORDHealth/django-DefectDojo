@@ -11,6 +11,7 @@ def get_authorized_product_types(permission):
     #       everyone can see all product types
     return Product_Type.objects.all().order_by('name')
 
+
 def get_authorized_members_for_product_type(product_type, permission):
     user = get_current_user()
 
