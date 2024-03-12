@@ -343,12 +343,6 @@
                                     <th>
                                         {% trans "Vulnerability Id" %}
                                     </th>
-                                    <th>
-                                        {% trans "EPSS Score" %}
-                                    </th>
-                                    <th>
-                                        {% trans "EPSS Percentile" %}
-                                    </th>
                                     {% if system_settings.enable_jira %}
                                         {% if jira_project and product_tab or not product_tab %}
                                             <th>
@@ -628,14 +622,7 @@
                                                     {% endif %}
                                                 {% endif %}
                                             {% endwith %}
-                                        </td>
-                                        <td class="nowrap">
-                                            {{ finding.epss_score|format_epss }}
-                                        </td>
-                                        <td class="nowrap">
-                                            {{ finding.epss_percentile|format_epss }}
-                                        </td>
-                                        
+                                        </td>                                        
                                         {% if system_settings.enable_jira %}
                                             {% if jira_project and product_tab or not product_tab %}
                                                 <td class="nowrap">
