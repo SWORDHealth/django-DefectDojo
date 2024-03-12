@@ -325,6 +325,15 @@
                                     <th>
                                         {% trans "Found By" %}
                                     </th>
+                                    <th class="nowrap">
+                                        {% if filter_name == 'Closed' %}
+                                            {% comment %} The display field is translated in the function. No need to translate here as well{% endcomment %}
+                                            {% dojo_sort request 'Closed Date' 'mitigated' %}
+                                        {% else %}
+                                            {% comment %} The display field is translated in the function. No need to translate here as well{% endcomment %}
+                                            {% dojo_sort request 'Date' 'date' %}
+                                        {% endif %}
+                                    </th>
                                     <th>
                                         {% trans "Status" %}
                                     </th>
@@ -340,26 +349,6 @@
                                     <th>
                                         {% trans "EPSS Percentile" %}
                                     </th>
-                                    <th class="nowrap">
-                                        {% if filter_name == 'Closed' %}
-                                            {% comment %} The display field is translated in the function. No need to translate here as well{% endcomment %}
-                                            {% dojo_sort request 'Closed Date' 'mitigated' %}
-                                        {% else %}
-                                            {% comment %} The display field is translated in the function. No need to translate here as well{% endcomment %}
-                                            {% dojo_sort request 'Date' 'date' %}
-                                        {% endif %}
-                                    </th>
-                                    <th class="nowrap">
-                                        {% trans "Age" %}
-                                    </th>
-                                    {% if system_settings.enable_finding_sla %}
-                                        <th>
-                                            {% trans "SLA" %}
-                                        </th>
-                                    {% endif %}
-                                    <th>
-                                        {% trans "Reporter" %}
-                                    </th>
                                     {% if system_settings.enable_jira %}
                                         {% if jira_project and product_tab or not product_tab %}
                                             <th>
@@ -373,6 +362,17 @@
                                             </th>
                                         {% endif %}
                                     {% endif %}
+                                    <th class="nowrap">
+                                        {% trans "Age" %}
+                                    </th>
+                                    {% if system_settings.enable_finding_sla %}
+                                        <th>
+                                            {% trans "SLA" %}
+                                        </th>
+                                    {% endif %}
+                                    <th>
+                                        {% trans "Reporter" %}
+                                    </th>
                                     {% if 'is_finding_groups_enabled'|system_setting_enabled %}
                                         <th>
                                             {% trans "Group" %}
@@ -548,6 +548,13 @@
                                             {% endif %}
                                         </td>
                                         <td class="nowrap">
+                                            {% if filter_name == 'Closed' %}
+                                                {{ finding.mitigated|date }}
+                                            {% else %}
+                                                {{ finding.date }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="nowrap">
                                             {{ finding|finding_display_status|safe }}&nbsp;{{ finding|import_history }}
                                         </td>
                                         <td>
@@ -628,28 +635,7 @@
                                         <td class="nowrap">
                                             {{ finding.epss_percentile|format_epss }}
                                         </td>
-                                        <td class="nowrap">
-                                            {% if filter_name == 'Closed' %}
-                                                {{ finding.mitigated|date }}
-                                            {% else %}
-                                                {{ finding.date }}
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {{ finding.age }}
-                                        </td>
-                                        {% if system_settings.enable_finding_sla %}
-                                            <td>
-                                                {{ finding|finding_sla }}
-                                            </td>
-                                        {% endif %}
-                                        <td>
-                                            {% if finding.reporter.get_full_name and finding.reporter.get_full_name.strip %}
-                                                {{ finding.reporter.get_full_name }}
-                                            {% else %}
-                                                {{ finding.reporter }}
-                                            {% endif %}
-                                        </td>
+                                        
                                         {% if system_settings.enable_jira %}
                                             {% if jira_project and product_tab or not product_tab %}
                                                 <td class="nowrap">
@@ -685,6 +671,21 @@
                                                 </td>
                                             {% endif %}
                                         {% endif %}
+                                        <td>
+                                            {{ finding.age }}
+                                        </td>
+                                        {% if system_settings.enable_finding_sla %}
+                                            <td>
+                                                {{ finding|finding_sla }}
+                                            </td>
+                                        {% endif %}
+                                        <td>
+                                            {% if finding.reporter.get_full_name and finding.reporter.get_full_name.strip %}
+                                                {{ finding.reporter.get_full_name }}
+                                            {% else %}
+                                                {{ finding.reporter }}
+                                            {% endif %}
+                                        </td>
                                         {% if 'is_finding_groups_enabled'|system_setting_enabled %}
                                             <td class="centered">
                                                 {% if finding.has_finding_group %}
