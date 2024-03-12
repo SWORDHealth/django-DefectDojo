@@ -364,20 +364,6 @@
                                             {% trans "SLA" %}
                                         </th>
                                     {% endif %}
-                                    <th>
-                                        {% trans "Reporter" %}
-                                    </th>
-                                    {% if 'is_finding_groups_enabled'|system_setting_enabled %}
-                                        <th>
-                                            {% trans "Group" %}
-                                        </th>
-                                    {% endif %}
-                                    <th>
-                                        {% trans "Service" %}
-                                    </th>
-                                    <th>
-                                        {% trans "Planned Remediation" %}
-                                    </th>
                                 {% endblock header %}
                             </tr>
                         </thead>
@@ -529,29 +515,6 @@
                                             </td>
                                         {% endif %}
                                         <td>
-                                            {% if finding.found_by %}
-                                                <a target="#"
-                                                data-toggle="tooltip"
-                                                data-placement="bottom"
-                                                title="Test: {{ finding.test }}">{{ finding.found_by.all|join:", " }}</a>
-                                            {% else %}
-                                                <a target="#"
-                                                data-toggle="tooltip"
-                                                data-placement="bottom"
-                                                title="Test: {{ finding.test }}">{{ finding.test.test_type }}</a>
-                                            {% endif %}
-                                        </td>
-                                        <td class="nowrap">
-                                            {% if filter_name == 'Closed' %}
-                                                {{ finding.mitigated|date }}
-                                            {% else %}
-                                                {{ finding.date }}
-                                            {% endif %}
-                                        </td>
-                                        <td class="nowrap">
-                                            {{ finding|finding_display_status|safe }}&nbsp;{{ finding|import_history }}
-                                        </td>
-                                        <td>
                                             {% if finding.title %}
                                                 <a title="{{ finding.title }}" href="{% url 'view_finding' finding.id %}">{{ finding.title|truncatechars_html:60 }}</a>
                                             {% else %}
@@ -603,6 +566,30 @@
                                             {% endif %}
                                             {% include "dojo/snippets/tags.html" with tags=finding.tags.all %}
                                         </td>
+                                        <td>
+                                            {% if finding.found_by %}
+                                                <a target="#"
+                                                data-toggle="tooltip"
+                                                data-placement="bottom"
+                                                title="Test: {{ finding.test }}">{{ finding.found_by.all|join:", " }}</a>
+                                            {% else %}
+                                                <a target="#"
+                                                data-toggle="tooltip"
+                                                data-placement="bottom"
+                                                title="Test: {{ finding.test }}">{{ finding.test.test_type }}</a>
+                                            {% endif %}
+                                        </td>
+                                        <td class="nowrap">
+                                            {% if filter_name == 'Closed' %}
+                                                {{ finding.mitigated|date }}
+                                            {% else %}
+                                                {{ finding.date }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="nowrap">
+                                            {{ finding|finding_display_status|safe }}&nbsp;{{ finding|import_history }}
+                                        </td>
+                                        
                                         <td class="nowrap">
                                             {% if finding.cwe > 0 %}
                                                 <a target="_blank" href="{{ finding.cwe|cwe_url }}">
@@ -666,26 +653,6 @@
                                                 {{ finding|finding_sla }}
                                             </td>
                                         {% endif %}
-                                        <td>
-                                            {% if finding.reporter.get_full_name and finding.reporter.get_full_name.strip %}
-                                                {{ finding.reporter.get_full_name }}
-                                            {% else %}
-                                                {{ finding.reporter }}
-                                            {% endif %}
-                                        </td>
-                                        {% if 'is_finding_groups_enabled'|system_setting_enabled %}
-                                            <td class="centered">
-                                                {% if finding.has_finding_group %}
-                                                    <a href="{% url 'view_finding_group' finding.finding_group.id %}" title="{{ finding.finding_group.name }}">{{ finding.finding_group.name }}</a>
-                                                {% endif %}
-                                            </td>
-                                        {% endif %}
-                                        <td>
-                                            {% if finding.service %}{{ finding.service }}{% endif %}
-                                        </td>
-                                        <td class="nowrap">
-                                            {% if finding.planned_remediation_date %}{{ finding.planned_remediation_date }}{% endif %}
-                                        </td>
                                     {% endblock body %}
                                 </tr>
                             {% endfor %}
