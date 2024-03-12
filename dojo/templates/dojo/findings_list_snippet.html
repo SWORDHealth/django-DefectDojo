@@ -323,6 +323,12 @@
                                         {% dojo_sort request 'Name' 'title' %}
                                     </th>
                                     <th>
+                                        {% trans "Found By" %}
+                                    </th>
+                                    <th>
+                                        {% trans "Status" %}
+                                    </th>
+                                    <th>
                                         {% trans "CWE" %}
                                     </th>
                                     <th>
@@ -353,12 +359,6 @@
                                     {% endif %}
                                     <th>
                                         {% trans "Reporter" %}
-                                    </th>
-                                    <th>
-                                        {% trans "Found By" %}
-                                    </th>
-                                    <th>
-                                        {% trans "Status" %}
                                     </th>
                                     {% if system_settings.enable_jira %}
                                         {% if jira_project and product_tab or not product_tab %}
@@ -535,6 +535,22 @@
                                             </td>
                                         {% endif %}
                                         <td>
+                                            {% if finding.found_by %}
+                                                <a target="#"
+                                                data-toggle="tooltip"
+                                                data-placement="bottom"
+                                                title="Test: {{ finding.test }}">{{ finding.found_by.all|join:", " }}</a>
+                                            {% else %}
+                                                <a target="#"
+                                                data-toggle="tooltip"
+                                                data-placement="bottom"
+                                                title="Test: {{ finding.test }}">{{ finding.test.test_type }}</a>
+                                            {% endif %}
+                                        </td>
+                                        <td class="nowrap">
+                                            {{ finding|finding_display_status|safe }}&nbsp;{{ finding|import_history }}
+                                        </td>
+                                        <td>
                                             {% if finding.title %}
                                                 <a title="{{ finding.title }}" href="{% url 'view_finding' finding.id %}">{{ finding.title|truncatechars_html:60 }}</a>
                                             {% else %}
@@ -633,22 +649,6 @@
                                             {% else %}
                                                 {{ finding.reporter }}
                                             {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if finding.found_by %}
-                                                <a target="#"
-                                                data-toggle="tooltip"
-                                                data-placement="bottom"
-                                                title="Test: {{ finding.test }}">{{ finding.found_by.all|join:", " }}</a>
-                                            {% else %}
-                                                <a target="#"
-                                                data-toggle="tooltip"
-                                                data-placement="bottom"
-                                                title="Test: {{ finding.test }}">{{ finding.test.test_type }}</a>
-                                            {% endif %}
-                                        </td>
-                                        <td class="nowrap">
-                                            {{ finding|finding_display_status|safe }}&nbsp;{{ finding|import_history }}
                                         </td>
                                         {% if system_settings.enable_jira %}
                                             {% if jira_project and product_tab or not product_tab %}
