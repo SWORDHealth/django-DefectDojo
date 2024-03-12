@@ -312,6 +312,12 @@
                                     <th class="nowrap centered severity-sort">
                                         {% trans "Severity" %}
                                     </th>
+                                    {% if show_product_column and product_tab is None %}
+                                        <th class="nowrap">
+                                            {% comment %} The display field is translated in the function. No need to translate here as well{% endcomment %}
+                                            {% dojo_sort request 'Product' 'test__engagement__product__name' %}
+                                        </th>
+                                    {% endif %}
                                     <th class="nowrap">
                                         {% comment %} The display field is translated in the function. No need to translate here as well{% endcomment %}
                                         {% dojo_sort request 'Name' 'title' %}
@@ -370,12 +376,6 @@
                                     {% if 'is_finding_groups_enabled'|system_setting_enabled %}
                                         <th>
                                             {% trans "Group" %}
-                                        </th>
-                                    {% endif %}
-                                    {% if show_product_column and product_tab is None %}
-                                        <th class="nowrap">
-                                            {% comment %} The display field is translated in the function. No need to translate here as well{% endcomment %}
-                                            {% dojo_sort request 'Product' 'test__engagement__product__name' %}
                                         </th>
                                     {% endif %}
                                     <th>
@@ -527,6 +527,13 @@
                                                 {{ finding.severity_display }}
                                             </span>
                                         </td>
+                                        {% if show_product_column and product_tab is None %}
+                                            <td>
+                                                <a href="{% url 'view_product' finding.test.engagement.product.id %}"
+                                                title="{{ finding.test.engagement }}"
+                                                alt="{{ finding.test.engagement.product }}">{{ finding.test.engagement.product }}</a>
+                                            </td>
+                                        {% endif %}
                                         <td>
                                             {% if finding.title %}
                                                 <a title="{{ finding.title }}" href="{% url 'view_finding' finding.id %}">{{ finding.title|truncatechars_html:60 }}</a>
@@ -683,13 +690,6 @@
                                                 {% if finding.has_finding_group %}
                                                     <a href="{% url 'view_finding_group' finding.finding_group.id %}" title="{{ finding.finding_group.name }}">{{ finding.finding_group.name }}</a>
                                                 {% endif %}
-                                            </td>
-                                        {% endif %}
-                                        {% if show_product_column and product_tab is None %}
-                                            <td>
-                                                <a href="{% url 'view_product' finding.test.engagement.product.id %}"
-                                                title="{{ finding.test.engagement }}"
-                                                alt="{{ finding.test.engagement.product }}">{{ finding.test.engagement.product }}</a>
                                             </td>
                                         {% endif %}
                                         <td>
