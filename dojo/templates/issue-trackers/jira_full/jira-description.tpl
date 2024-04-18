@@ -71,7 +71,7 @@
 {% endif %}
 {% endif %}
 
-{% autoescape on %}
+{% autoescape off %}
 *Description*:
 {{ finding.get_redacted_description }}
 
