@@ -73,7 +73,7 @@
 
 {% autoescape off %}
 *Description*:
-{{ finding.get_redacted_description }}
+{{ finding.get_redacted_description|markdown_render }}
 
 {% if finding.mitigation %}
 *Mitigation*:
