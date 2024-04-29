@@ -142,7 +142,7 @@ class UniqueUploadNameProvider:
 
     def __call__(self, model_instance, filename):
         base, ext = os.path.splitext(filename)
-        filename = "%s_%s" % (base, uuid4()) if self.keep_basename else str(uuid4())
+        filename = f"{base}_{uuid4()}" if self.keep_basename else str(uuid4())
         if self.keep_ext:
             filename += ext
         if self.directory is None:
@@ -219,9 +219,7 @@ class Dojo_User(User):
         """
         Returns the first_name plus the last_name, with a space in between.
         """
-        full_name = '%s %s (%s)' % (user.first_name,
-                                    user.last_name,
-                                    user.username)
+        full_name = f'{user.first_name} {user.last_name} ({user.username})'
         return full_name.strip()
 
 
@@ -566,6 +564,19 @@ class System_Settings(models.Model):
         blank=False,
         verbose_name=_("Password must not be common"),
         help_text=_("Requires user passwords to not be part of list of common passwords."))
+    api_expose_error_details = models.BooleanField(
+        default=False,
+        blank=False,
+        verbose_name=_("API expose error details"),
+        help_text=_("When turned on, the API will expose error details in the response."))
+    filter_string_matching = models.BooleanField(
+        default=False,
+        blank=False,
+        verbose_name=_("Filter String Matching Optimization"),
+        help_text=_(
+            "When turned on, all filter operations in the UI will require string matches rather than ID. "
+            "This is a performance enhancement to avoid fetching objects unnecessarily."
+        ))
 
     from dojo.middleware import System_Settings_Manager
     objects = System_Settings_Manager()
@@ -685,12 +696,12 @@ class FileUpload(models.Model):
         copy.pk = None
         copy.id = None
         # Add unique modifier to file name
-        copy.title = '{} - clone-{}'.format(self.title, str(uuid4())[:8])
+        copy.title = f'{self.title} - clone-{str(uuid4())[:8]}'
         # Create new unique file name
         current_url = self.file.url
         _, current_full_filename = current_url.rsplit('/', 1)
         _, extension = current_full_filename.split('.', 1)
-        new_file = ContentFile(self.file.read(), name='{}.{}'.format(uuid4(), extension))
+        new_file = ContentFile(self.file.read(), name=f'{uuid4()}.{extension}')
         copy.file = new_file
         copy.save()
 
@@ -704,11 +715,7 @@ class FileUpload(models.Model):
         elif isinstance(obj, Finding):
             obj_type = 'Finding'
 
-        return 'access_file/{file_id}/{obj_id}/{obj_type}'.format(
-            file_id=self.id,
-            obj_id=obj_id,
-            obj_type=obj_type
-        )
+        return f'access_file/{self.id}/{obj_id}/{obj_type}'
 
 
 class Product_Type(models.Model):
@@ -852,7 +859,7 @@ class DojoMeta(models.Model):
             raise ValidationError('Metadata entries may not have more than one relation, either a product, an endpoint either or a finding')
 
     def __str__(self):
-        return "%s: %s" % (self.name, self.value)
+        return f"{self.name}: {self.value}"
 
     class Meta:
         unique_together = (('product', 'name'),
@@ -894,7 +901,7 @@ class SLA_Configuration(models.Model):
                 self.medium = initial_sla_config.medium
                 self.low = initial_sla_config.low
 
-        super(SLA_Configuration, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         # if the initial sla config exists and async finding update is not running
         if initial_sla_config is not None and not self.async_updating:
@@ -912,7 +919,7 @@ class SLA_Configuration(models.Model):
             if len(severities):
                 # set the async updating flag to true for this sla config
                 self.async_updating = True
-                super(SLA_Configuration, self).save(*args, **kwargs)
+                super().save(*args, **kwargs)
                 # set the async updating flag to true for all products using this sla config
                 products = Product.objects.filter(sla_configuration=self)
                 for product in products:
@@ -1055,7 +1062,7 @@ class Product(models.Model):
             if initial_sla_config and self.async_updating:
                 self.sla_configuration = initial_sla_config
 
-        super(Product, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         # if the initial sla config exists and async finding update is not running
         if initial_sla_config is not None and not self.async_updating:
@@ -1065,7 +1072,7 @@ class Product(models.Model):
             if new_sla_config and (initial_sla_config != new_sla_config):
                 # set the async updating flag to true for this product
                 self.async_updating = True
-                super(Product, self).save(*args, **kwargs)
+                super().save(*args, **kwargs)
                 # set the async updating flag to true for the sla config assigned to this product
                 sla_config = getattr(self, 'sla_configuration', None)
                 if sla_config:
@@ -1547,7 +1554,7 @@ class Endpoint_Status(models.Model):
         return days if days > 0 else 0
 
     def __str__(self):
-        return "'{}' on '{}'".format(str(self.finding), str(self.endpoint))
+        return f"'{str(self.finding)}' on '{str(self.endpoint)}'"
 
     def copy(self, finding=None):
         copy = self
@@ -1612,13 +1619,13 @@ class Endpoint(models.Model):
         db_type = connection.vendor
         if self.protocol or self.protocol == '':
             if not re.match(r'^[A-Za-z][A-Za-z0-9\.\-\+]+$', self.protocol):  # https://tools.ietf.org/html/rfc3986#section-3.1
-                errors.append(ValidationError('Protocol "{}" has invalid format'.format(self.protocol)))
+                errors.append(ValidationError(f'Protocol "{self.protocol}" has invalid format'))
             if self.protocol == '':
                 self.protocol = None
 
         if self.userinfo or self.userinfo == '':
             if not re.match(r'^[A-Za-z0-9\.\-_~%\!\$&\'\(\)\*\+,;=:]+$', self.userinfo):  # https://tools.ietf.org/html/rfc3986#section-3.2.1
-                errors.append(ValidationError('Userinfo "{}" has invalid format'.format(self.userinfo)))
+                errors.append(ValidationError(f'Userinfo "{self.userinfo}" has invalid format'))
             if self.userinfo == '':
                 self.userinfo = None
 
@@ -1627,7 +1634,7 @@ class Endpoint(models.Model):
                 try:
                     validate_ipv46_address(self.host)
                 except ValidationError:
-                    errors.append(ValidationError('Host "{}" has invalid format'.format(self.host)))
+                    errors.append(ValidationError(f'Host "{self.host}" has invalid format'))
         else:
             errors.append(ValidationError('Host must not be empty'))
 
@@ -1635,10 +1642,10 @@ class Endpoint(models.Model):
             try:
                 int_port = int(self.port)
                 if not (0 <= int_port < 65536):
-                    errors.append(ValidationError('Port "{}" has invalid format - out of range'.format(self.port)))
+                    errors.append(ValidationError(f'Port "{self.port}" has invalid format - out of range'))
                 self.port = int_port
             except ValueError:
-                errors.append(ValidationError('Port "{}" has invalid format - it is not a number'.format(self.port)))
+                errors.append(ValidationError(f'Port "{self.port}" has invalid format - it is not a number'))
 
         if self.path or self.path == '':
             while len(self.path) > 0 and self.path[0] == "/":  # Endpoint store "root-less" path
@@ -1649,7 +1656,7 @@ class Endpoint(models.Model):
                     action_string = 'Postgres does not accept NULL character. Attempting to replace with %00...'
                     for remove_str in null_char_list:
                         self.path = self.path.replace(remove_str, '%00')
-                    errors.append(ValidationError('Path "{}" has invalid format - It contains the NULL character. The following action was taken: {}'.format(old_value, action_string)))
+                    logging.error(f'Path "{old_value}" has invalid format - It contains the NULL character. The following action was taken: {action_string}')
             if self.path == '':
                 self.path = None
 
@@ -1662,7 +1669,7 @@ class Endpoint(models.Model):
                     action_string = 'Postgres does not accept NULL character. Attempting to replace with %00...'
                     for remove_str in null_char_list:
                         self.query = self.query.replace(remove_str, '%00')
-                    errors.append(ValidationError('Query "{}" has invalid format - It contains the NULL character. The following action was taken: {}'.format(old_value, action_string)))
+                    logging.error(f'Query "{old_value}" has invalid format - It contains the NULL character. The following action was taken: {action_string}')
             if self.query == '':
                 self.query = None
 
@@ -1675,7 +1682,7 @@ class Endpoint(models.Model):
                     action_string = 'Postgres does not accept NULL character. Attempting to replace with %00...'
                     for remove_str in null_char_list:
                         self.fragment = self.fragment.replace(remove_str, '%00')
-                    errors.append(ValidationError('Fragment "{}" has invalid format - It contains the NULL character. The following action was taken: {}'.format(old_value, action_string)))
+                    logging.error(f'Fragment "{old_value}" has invalid format - It contains the NULL character. The following action was taken: {action_string}')
             if self.fragment == '':
                 self.fragment = None
 
@@ -1694,11 +1701,11 @@ class Endpoint(models.Model):
                     path=tuple(self.path.split('/')) if self.path else (),
                     query=tuple(
                         (
-                            qe.split(u"=", 1)
-                            if u"=" in qe
+                            qe.split("=", 1)
+                            if "=" in qe
                             else (qe, None)
                         )
-                        for qe in self.query.split(u"&")
+                        for qe in self.query.split("&")
                     ) if self.query else (),  # inspired by https://github.com/python-hyper/hyperlink/blob/b8c9152cd826bbe8e6cc125648f3738235019705/src/hyperlink/_url.py#L1427
                     fragment=self.fragment or ''
                 )
@@ -1717,19 +1724,19 @@ class Endpoint(models.Model):
         except:
             url = ''
             if self.protocol:
-                url += '{}://'.format(self.protocol)
+                url += f'{self.protocol}://'
             if self.userinfo:
-                url += '{}@'.format(self.userinfo)
+                url += f'{self.userinfo}@'
             if self.host:
                 url += self.host
             if self.port:
-                url += ':{}'.format(self.port)
+                url += f':{self.port}'
             if self.path:
                 url += '{}{}'.format('/' if self.path[0] != '/' else '', self.path)
             if self.query:
-                url += '?{}'.format(self.query)
+                url += f'?{self.query}'
             if self.fragment:
-                url += '#{}'.format(self.fragment)
+                url += f'#{self.fragment}'
             return url
 
     def __hash__(self):
@@ -1769,7 +1776,13 @@ class Endpoint(models.Model):
 
     @property
     def vulnerable(self):
-        return self.active_findings_count > 0
+        return Endpoint_Status.objects.filter(
+            endpoint=self,
+            mitigated=False,
+            false_positive=False,
+            out_of_scope=False,
+            risk_accepted=False
+        ).count() > 0
 
     @property
     def findings_count(self):
@@ -1821,15 +1834,15 @@ class Endpoint(models.Model):
     def host_mitigated_endpoints(self):
         meps = Endpoint_Status.objects \
                   .filter(endpoint__in=self.host_endpoints()) \
-                  .filter(Q(mitigated=True) |
-                          Q(false_positive=True) |
-                          Q(out_of_scope=True) |
-                          Q(risk_accepted=True) |
-                          Q(finding__out_of_scope=True) |
-                          Q(finding__mitigated__isnull=False) |
-                          Q(finding__false_p=True) |
-                          Q(finding__duplicate=True) |
-                          Q(finding__active=False))
+                  .filter(Q(mitigated=True)
+                          | Q(false_positive=True)
+                          | Q(out_of_scope=True)
+                          | Q(risk_accepted=True)
+                          | Q(finding__out_of_scope=True)
+                          | Q(finding__mitigated__isnull=False)
+                          | Q(finding__false_p=True)
+                          | Q(finding__duplicate=True)
+                          | Q(finding__active=False))
         return Endpoint.objects.filter(status_endpoint__in=meps).distinct()
 
     @property
@@ -1894,15 +1907,15 @@ class Endpoint(models.Model):
             from urllib.parse import urlparse
             url = hyperlink.parse(url="//" + urlparse(uri).netloc)
         except hyperlink.URLParseError as e:
-            raise ValidationError('Invalid URL format: {}'.format(e))
+            raise ValidationError(f'Invalid URL format: {e}')
 
         query_parts = []  # inspired by https://github.com/python-hyper/hyperlink/blob/b8c9152cd826bbe8e6cc125648f3738235019705/src/hyperlink/_url.py#L1768
         for k, v in url.query:
             if v is None:
                 query_parts.append(k)
             else:
-                query_parts.append(u"=".join([k, v]))
-        query_string = u"&".join(query_parts)
+                query_parts.append(f"{k}={v}")
+        query_string = "&".join(query_parts)
 
         protocol = url.scheme if url.scheme != '' else None
         userinfo = ':'.join(url.userinfo) if url.userinfo not in [(), ('',)] else None
@@ -1944,7 +1957,7 @@ class Development_Environment(models.Model):
 
 
 class Sonarqube_Issue(models.Model):
-    key = models.CharField(max_length=30, unique=True, help_text=_("SonarQube issue key"))
+    key = models.CharField(max_length=60, unique=True, help_text=_("SonarQube issue key"))
     status = models.CharField(max_length=20, help_text=_("SonarQube issue status"))
     type = models.CharField(max_length=20, help_text=_("SonarQube issue type"))
 
@@ -2008,7 +2021,7 @@ class Test(models.Model):
 
     def __str__(self):
         if self.title:
-            return "%s (%s)" % (self.title, self.test_type)
+            return f"{self.title} ({self.test_type})"
         return str(self.test_type)
 
     def get_breadcrumbs(self):
@@ -2227,7 +2240,8 @@ class Finding(models.Model):
     cvssv3_score = models.FloatField(null=True,
                                         blank=True,
                                         verbose_name=_('CVSSv3 score'),
-                                        help_text=_("Numerical CVSSv3 score for the vulnerability. If the vector is given, the score is updated while saving the finding"))
+                                        help_text=_("Numerical CVSSv3 score for the vulnerability. If the vector is given, the score is updated while saving the finding. The value must be between 0-10."),
+                                        validators=[MinValueValidator(0.0), MaxValueValidator(10.0)])
 
     url = models.TextField(null=True,
                            blank=True,
@@ -2236,7 +2250,7 @@ class Finding(models.Model):
                            help_text=_("External reference that provides more information about this flaw."))  # not displayed and pretty much the same as references. To remove?
     severity = models.CharField(max_length=200,
                                 verbose_name=_('Severity'),
-                                help_text=_('The severity level of this flaw (Critical, High, Medium, Low, Informational).'))
+                                help_text=_('The severity level of this flaw (Critical, High, Medium, Low, Info).'))
     description = models.TextField(verbose_name=_('Description'),
                                 help_text=_("Longer more descriptive information about the flaw."))
     mitigation = models.TextField(verbose_name=_('Mitigation'),
@@ -2555,7 +2569,7 @@ class Finding(models.Model):
         ]
 
     def __init__(self, *args, **kwargs):
-        super(Finding, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.unsaved_endpoints = []
         self.unsaved_request = None
@@ -2647,8 +2661,8 @@ class Finding(models.Model):
         # Make sure that we have a cwe if we need one
         if self.cwe == 0 and not self.test.hash_code_allows_null_cwe:
             deduplicationLogger.warning(
-                "Cannot compute hash_code based on configured fields because cwe is 0 for finding of title '" + self.title + "' found in file '" + str(self.file_path) +
-                "'. Fallback to legacy mode for this finding.")
+                "Cannot compute hash_code based on configured fields because cwe is 0 for finding of title '" + self.title + "' found in file '" + str(self.file_path)
+                + "'. Fallback to legacy mode for this finding.")
             return self.compute_hash_code_legacy()
 
         deduplicationLogger.debug("computing hash_code for finding id " + str(self.id) + " based on: " + ', '.join(hash_code_fields))
@@ -2993,11 +3007,12 @@ class Finding(models.Model):
         if not user:
             from dojo.utils import get_current_user
             user = get_current_user()
-
         # Title Casing
         from titlecase import titlecase
         self.title = titlecase(self.title[:511])
-
+        # Set the date of the finding if nothing is supplied
+        if self.date is None:
+            self.date = timezone.now()
         # Assign the numerical severity for correct sorting order
         self.numerical_severity = Finding.get_numerical_severity(self.severity)
 
@@ -3047,7 +3062,7 @@ class Finding(models.Model):
         self.set_sla_expiration_date()
 
         logger.debug("Saving finding of id " + str(self.id) + " dedupe_option:" + str(dedupe_option) + " (self.pk is %s)", "None" if self.pk is None else "not None")
-        super(Finding, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         self.found_by.add(self.test.test_type)
 
@@ -3108,7 +3123,7 @@ class Finding(models.Model):
         return redacted_description
 
     def get_valid_request_response_pairs(self):
-        empty_value = base64.b64encode("".encode())
+        empty_value = base64.b64encode(b"")
         # Get a list of all req/resp pairs
         all_req_resps = self.burprawrequestresponse_set.all()
         # Filter away those that do not have any contents
@@ -3310,7 +3325,7 @@ class Finding(models.Model):
         for match in matches:
             # Check if match isn't already a markdown link
             # Only replace the same matches one time, otherwise the links will be corrupted
-            if not (match[0].startswith('[') or match[0].startswith('(')) and not match[0] in processed_matches:
+            if not (match[0].startswith('[') or match[0].startswith('(')) and match[0] not in processed_matches:
                 self.references = self.references.replace(match[0], create_bleached_link(match[0], match[0]), 1)
                 processed_matches.append(match[0])
 
@@ -3736,7 +3751,7 @@ class FileAccessToken(models.Model):
     def save(self, *args, **kwargs):
         if not self.token:
             self.token = uuid4()
-        return super(FileAccessToken, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
 
 ANNOUNCEMENT_STYLE_CHOICES = (
@@ -3991,7 +4006,7 @@ class JIRA_Issue(models.Model):
         elif isinstance(obj, Engagement):
             self.engagement = obj
         else:
-            raise ValueError('unknown object type while creating JIRA_Issue: %s' % to_str_typed(obj))
+            raise TypeError('unknown object type while creating JIRA_Issue: %s' % to_str_typed(obj))
 
     def __str__(self):
         text = ""
@@ -4571,7 +4586,7 @@ if settings.ENABLE_AUDITLOG:
     auditlog.register(Finding_Template)
     auditlog.register(Cred_User, exclude_fields=['password'])
 
-from dojo.utils import calculate_grade, to_str_typed
+from dojo.utils import calculate_grade, to_str_typed  # noqa: E402  # there is issue due to a circular import
 
 tagulous.admin.register(Product.tags)
 tagulous.admin.register(Test.tags)

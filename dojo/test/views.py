@@ -19,7 +19,7 @@ from django.utils.translation import gettext as _
 from django.contrib.admin.utils import NestedObjects
 from django.db import DEFAULT_DB_ALIAS
 
-from dojo.filters import TemplateFindingFilter, FindingFilter, TestImportFilter
+from dojo.filters import TemplateFindingFilter, FindingFilter, TestImportFilter, FindingFilterWithoutObjectLookups
 from dojo.forms import NoteForm, TestForm, \
     DeleteTestForm, AddFindingForm, TypedNoteForm, \
     ReImportScanForm, JIRAFindingForm, JIRAImportScanForm, \
@@ -108,7 +108,9 @@ class ViewTest(View):
 
     def get_findings(self, request: HttpRequest, test: Test):
         findings = Finding.objects.filter(test=test).order_by("numerical_severity")
-        findings = FindingFilter(request.GET, queryset=findings)
+        filter_string_matching = get_system_setting("filter_string_matching", False)
+        finding_filter_class = FindingFilterWithoutObjectLookups if filter_string_matching else FindingFilter
+        findings = finding_filter_class(request.GET, queryset=findings)
         paged_findings = get_page_items_and_count(request, prefetch_for_findings(findings.qs), 25, prefix='findings')
 
         return {
@@ -346,7 +348,7 @@ def copy_test(request, tid):
                 extra_tags='alert-success')
             create_notification(event='other',
                                 title='Copying of %s' % test.title,
-                                description='The test "%s" was copied by %s to %s' % (test.title, request.user, engagement.name),
+                                description=f'The test "{test.title}" was copied by {request.user} to {engagement.name}',
                                 product=product,
                                 url=request.build_absolute_uri(reverse('view_test', args=(test_copy.id,))),
                                 recipients=[test.engagement.lead],
@@ -412,7 +414,7 @@ def test_ics(request, tid):
                         _("Set aside for test %(test_type_name)s, on product %(product_name)s. Additional detail can be found at %(detail_url)s") % {
                             'test_type_name': test.test_type.name,
                             'product_name': test.engagement.product.name,
-                            'detail_url': request.build_absolute_uri((reverse("view_test", args=(test.id,))))
+                            'detail_url': request.build_absolute_uri(reverse("view_test", args=(test.id,)))
                         },
                         uid)
     output = cal.serialize()
@@ -447,7 +449,7 @@ class AddFindingView(View):
         args = [request.POST] if request.method == "POST" else []
         # Set the initial form args
         kwargs = {
-            "initial": {'date': timezone.now().date(), 'verified': True},
+            "initial": {'date': timezone.now().date(), 'verified': True, 'dynamic_finding': False},
             "req_resp": None,
             "product": test.engagement.product,
         }
@@ -474,9 +476,9 @@ class AddFindingView(View):
         return None
 
     def validate_status_change(self, request: HttpRequest, context: dict):
-        if ((context["form"]['active'].value() is False or
-             context["form"]['false_p'].value()) and
-             context["form"]['duplicate'].value() is False):
+        if ((context["form"]['active'].value() is False
+             or context["form"]['false_p'].value())
+             and context["form"]['duplicate'].value() is False):
 
             closing_disabled = Note_Type.objects.filter(is_mandatory=True, is_active=True).count()
             if closing_disabled != 0:
@@ -829,6 +831,8 @@ def re_import_scan_results(request, tid):
 
             group_by = form.cleaned_data.get('group_by', None)
             create_finding_groups_for_all_findings = form.cleaned_data.get('create_finding_groups_for_all_findings')
+            apply_tags_to_findings = form.cleaned_data.get('apply_tags_to_findings', False)
+            apply_tags_to_endpoints = form.cleaned_data.get('apply_tags_to_endpoints', False)
 
             active = None
             if activeChoice:
@@ -858,15 +862,16 @@ def re_import_scan_results(request, tid):
             finding_count, new_finding_count, closed_finding_count, reactivated_finding_count, untouched_finding_count = 0, 0, 0, 0, 0
             reimporter = ReImporter()
             try:
-                test, finding_count, new_finding_count, closed_finding_count, reactivated_finding_count, untouched_finding_count, test_import = \
+                test, finding_count, new_finding_count, closed_finding_count, reactivated_finding_count, untouched_finding_count, _test_import = \
                     reimporter.reimport_scan(scan, scan_type, test, active=active, verified=verified,
-                                                tags=None, minimum_severity=minimum_severity,
+                                                tags=tags, minimum_severity=minimum_severity,
                                                 endpoints_to_add=endpoints_to_add, scan_date=scan_date,
                                                 version=version, branch_tag=branch_tag, build_id=build_id,
                                                 commit_hash=commit_hash, push_to_jira=push_to_jira,
                                                 close_old_findings=close_old_findings, group_by=group_by,
                                                 api_scan_configuration=api_scan_configuration, service=service, do_not_reactivate=do_not_reactivate,
-                                                create_finding_groups_for_all_findings=create_finding_groups_for_all_findings)
+                                                create_finding_groups_for_all_findings=create_finding_groups_for_all_findings,
+                                                apply_tags_to_findings=apply_tags_to_findings, apply_tags_to_endpoints=apply_tags_to_endpoints)
             except Exception as e:
                 logger.exception(e)
                 add_error_message_to_response('An exception error occurred during the report import:%s' % str(e))

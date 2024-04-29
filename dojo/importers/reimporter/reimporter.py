@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 deduplicationLogger = logging.getLogger("dojo.specific-loggers.deduplication")
 
 
-class DojoDefaultReImporter(object):
+class DojoDefaultReImporter:
     @dojo_async_task
     @app.task(ignore_result=False)
     def process_parsed_findings(
@@ -42,7 +42,6 @@ class DojoDefaultReImporter(object):
         scan_date=None,
         do_not_reactivate=False,
         create_finding_groups_for_all_findings=True,
-        apply_tags_to_findings=False,
         **kwargs,
     ):
 
@@ -107,7 +106,7 @@ class DojoDefaultReImporter(object):
                     except ValidationError as err:
                         logger.warning(
                             "DefectDojo is storing broken endpoint because cleaning wasn't successful: "
-                            "{}".format(err)
+                            f"{err}"
                         )
 
             item.hash_code = item.compute_hash_code()
@@ -404,7 +403,7 @@ class DojoDefaultReImporter(object):
                         title = unsaved_file.get("title", "<No title>")
                         (
                             file_upload,
-                            file_upload_created,
+                            _file_upload_created,
                         ) = FileUpload.objects.get_or_create(
                             title=title,
                         )
@@ -576,6 +575,7 @@ class DojoDefaultReImporter(object):
         do_not_reactivate=False,
         create_finding_groups_for_all_findings=True,
         apply_tags_to_findings=False,
+        apply_tags_to_endpoints=False,
     ):
 
         logger.debug(f"REIMPORT_SCAN: parameters: {locals()}")
@@ -746,10 +746,18 @@ class DojoDefaultReImporter(object):
                 reactivated_findings,
                 untouched_findings,
             )
-        if apply_tags_to_findings and tags:
-            for finding in test_import.findings_affected.all():
-                for tag in tags:
-                    finding.tags.add(tag)
+
+            if apply_tags_to_findings and tags:
+                for finding in test_import.findings_affected.all():
+                    for tag in tags:
+                        finding.tags.add(tag)
+
+            if apply_tags_to_endpoints and tags:
+                for finding in test_import.findings_affected.all():
+                    for endpoint in finding.endpoints.all():
+                        for tag in tags:
+                            endpoint.tags.add(tag)
+
         logger.debug("REIMPORT_SCAN: Generating notifications")
 
         updated_count = (

@@ -5,7 +5,7 @@ from cvss.cvss3 import CVSS3
 from dojo.models import Finding
 
 
-class AnchoreGrypeParser(object):
+class AnchoreGrypeParser:
     """Anchore Grype JSON report format generated with `-o json` option.
 
     command: `grype defectdojo/defectdojo-django:1.13.1 -o json > many_vulns.json`
@@ -163,15 +163,15 @@ class AnchoreGrypeParser(object):
                 finding.nb_occurences += 1
             else:
                 dupes[dupe_key] = Finding(
-                    title=finding_title,
-                    description=finding_description,
+                    title=finding_title.replace("\x00", ""),
+                    description=finding_description.replace("\x00", ""),
                     cwe=1352,
                     cvssv3=finding_cvss3,
                     severity=vuln_severity,
                     mitigation=finding_mitigation,
                     references=finding_references,
                     component_name=artifact_name,
-                    component_version=artifact_version,
+                    component_version=artifact_version.replace("\x00", ""),
                     vuln_id_from_tool=vuln_id,
                     tags=finding_tags,
                     static_finding=True,

@@ -20,7 +20,7 @@ from django.utils.html import escape
 from django.views.decorators.cache import cache_page
 from django.utils import timezone
 
-from dojo.filters import MetricsFindingFilter, UserFilter, MetricsEndpointFilter
+from dojo.filters import MetricsFindingFilter, UserFilter, MetricsEndpointFilter, MetricsFindingFilterWithoutObjectLookups
 from dojo.forms import SimpleMetricsForm, ProductTypeCountsForm, ProductTagCountsForm
 from dojo.models import Product_Type, Finding, Product, Engagement, Test, \
     Risk_Acceptance, Dojo_User, Endpoint_Status
@@ -141,7 +141,9 @@ def finding_querys(prod_type, request):
         'test__engagement__risk_acceptance',
         'test__test_type',
     )
-    findings = MetricsFindingFilter(request.GET, queryset=findings_query)
+    filter_string_matching = get_system_setting("filter_string_matching", False)
+    finding_filter_class = MetricsFindingFilterWithoutObjectLookups if filter_string_matching else MetricsFindingFilter
+    findings = finding_filter_class(request.GET, queryset=findings_query)
     findings_qs = queryset_check(findings)
     # Quick check to determine if the filters were too tight and filtered everything away
     if not findings_qs and not findings_query:
@@ -314,15 +316,20 @@ def get_in_period_details(findings):
         elif obj.age > 90:
             age_detail[3] += 1
 
-        in_period_counts[obj.severity] += 1
-        in_period_counts['Total'] += 1
-
-        if obj.test.engagement.product.name not in in_period_details:
-            in_period_details[obj.test.engagement.product.name] = {
-                'path': reverse('product_open_findings', args=(obj.test.engagement.product.id,)),
-                'Critical': 0, 'High': 0, 'Medium': 0, 'Low': 0, 'Info': 0, 'Total': 0}
-        in_period_details[obj.test.engagement.product.name][obj.severity] += 1
-        in_period_details[obj.test.engagement.product.name]['Total'] += 1
+        # This condition should be true in nearly all cases,
+        # but there are some far edge cases
+        if obj.severity in in_period_counts:
+            in_period_counts[obj.severity] += 1
+            in_period_counts['Total'] += 1
+        # This condition should be true in nearly all cases,
+        # but there are some far edge cases
+        if obj.severity in in_period_details:
+            if obj.test.engagement.product.name not in in_period_details:
+                in_period_details[obj.test.engagement.product.name] = {
+                    'path': reverse('product_open_findings', args=(obj.test.engagement.product.id,)),
+                    'Critical': 0, 'High': 0, 'Medium': 0, 'Low': 0, 'Info': 0, 'Total': 0}
+            in_period_details[obj.test.engagement.product.name][obj.severity] += 1
+            in_period_details[obj.test.engagement.product.name]['Total'] += 1
 
     return in_period_counts, in_period_details, age_detail
 
@@ -874,8 +881,8 @@ and root can view others metrics
 @vary_on_cookie
 def view_engineer(request, eid):
     user = get_object_or_404(Dojo_User, pk=eid)
-    if not (request.user.is_superuser or
-            request.user.username == user.username):
+    if not (request.user.is_superuser
+            or request.user.username == user.username):
         raise PermissionDenied()
     now = timezone.now()
 
@@ -1033,7 +1040,7 @@ def view_engineer(request, eid):
                     severity='Low'
                 ).count()
         prod = Product.objects.get(id=product)
-        all_findings_link = "<a href='%s'>%s</a>" % (
+        all_findings_link = "<a href='{}'>{}</a>".format(
             reverse('product_open_findings', args=(prod.id,)), escape(prod.name))
         update.append([all_findings_link, z_count, o_count, t_count, h_count,
                        z_count + o_count + t_count + h_count])
@@ -1066,7 +1073,7 @@ def view_engineer(request, eid):
                     mitigated__isnull=True,
                     severity='Low').count()
         prod = Product.objects.get(id=product)
-        all_findings_link = "<a href='%s'>%s</a>" % (
+        all_findings_link = "<a href='{}'>{}</a>".format(
             reverse('product_open_findings', args=(prod.id,)), escape(prod.name))
         total_update.append([all_findings_link, z_count, o_count, t_count,
                              h_count, z_count + o_count + t_count + h_count])

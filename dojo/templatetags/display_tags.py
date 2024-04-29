@@ -87,13 +87,21 @@ def markdown_render(value):
         return mark_safe(bleach.clean(markdown_text, tags=markdown_tags, attributes=markdown_attrs, css_sanitizer=markdown_styles))
 
 
-@register.filter(name='url_shortner')
-def url_shortner(value):
+def text_shortener(value, length):
     return_value = str(value)
-    if len(return_value) > 50:
-        return_value = "..." + return_value[-47:]
-
+    if len(return_value) > length:
+        return_value = return_value[:length] + "..."
     return return_value
+
+
+@register.filter(name='url_shortener')
+def url_shortener(value):
+    return text_shortener(value, 80)
+
+
+@register.filter(name='breadcrumb_shortener')
+def breadcrumb_shortener(value):
+    return text_shortener(value, 15)
 
 
 @register.filter(name='get_pwd')
@@ -127,7 +135,7 @@ def dojo_version():
     version = __version__
     if settings.FOOTER_VERSION:
         version = settings.FOOTER_VERSION
-    return "v. {}".format(version)
+    return f"v. {version}"
 
 
 @register.simple_tag
@@ -183,9 +191,10 @@ def percentage(fraction, value):
 
 @register.filter
 def format_epss(value):
-    if value is None:
+    try:
+        return f'{value:.2%}'
+    except (ValueError, TypeError):
         return 'N.A.'
-    return f'{value:.2%}'
 
 
 def asvs_calc_level(benchmark_score):
@@ -220,7 +229,7 @@ def asvs_calc_level(benchmark_score):
 
 @register.filter
 def asvs_level(benchmark_score):
-    benchmark_score.desired_level, total, total_pass, total_wait, total_fail, total_viewed = asvs_calc_level(benchmark_score)
+    benchmark_score.desired_level, total, _total_pass, _total_wait, _total_fail, total_viewed = asvs_calc_level(benchmark_score)
 
     level = percentage(total_viewed, total)
 
@@ -339,9 +348,8 @@ def datediff_time(date1, date2):
     date_str = ""
     diff = dateutil.relativedelta.relativedelta(date2, date1)
     attrs = ['years', 'months', 'days']
-    human_readable = lambda delta: ['%d %s' % (getattr(delta, attr), getattr(delta, attr) > 1 and attr or attr[:-1])
-                                    for attr in attrs if getattr(delta, attr)]
-    human_date = human_readable(diff)
+    human_date = ['%d %s' % (getattr(diff, attr), getattr(diff, attr) > 1 and attr or attr[:-1])
+                                    for attr in attrs if getattr(diff, attr)]
     for date_part in human_date:
         date_str = date_str + date_part + " "
 
@@ -897,7 +905,8 @@ def jira_project_tag(product_or_engagement, autoescape=True):
     if autoescape:
         esc = conditional_escape
     else:
-        esc = lambda x: x
+        def esc(x):
+            return x
 
     jira_project = jira_helper.get_jira_project(product_or_engagement)
 
@@ -954,7 +963,8 @@ def import_settings_tag(test_import, autoescape=True):
     if autoescape:
         esc = conditional_escape
     else:
-        esc = lambda x: x
+        def esc(x):
+            return x
 
     html = """
 

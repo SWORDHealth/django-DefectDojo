@@ -1,3 +1,4 @@
+import re
 from dojo.finding.queries import get_authorized_findings
 from dojo.group.utils import get_auth_group_name
 from django.contrib.auth.models import Group
@@ -244,11 +245,13 @@ class TagListSerializerField(serializers.ListField):
         kwargs["style"] = {"base_template": "textarea.html"}
         kwargs["style"].update(style)
 
-        super(TagListSerializerField, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.pretty_print = pretty_print
 
     def to_internal_value(self, data):
+        if isinstance(data, list) and data == [''] and self.allow_empty:
+            return []
         if isinstance(data, six.string_types):
             if not data:
                 data = []
@@ -262,24 +265,19 @@ class TagListSerializerField(serializers.ListField):
         if not isinstance(data, list):
             self.fail("not_a_list", input_type=type(data).__name__)
 
-        # data_safe = []
+        data_safe = []
         for s in data:
+            # Ensure if the element in the list is  string
             if not isinstance(s, six.string_types):
                 self.fail("not_a_str")
-
+            # Run the children validation
             self.child.run_validation(s)
+            substrings = re.findall(r'(?:"[^"]*"|[^",]+)', s)
+            data_safe.extend(substrings)
 
-            # if ' ' in s or ',' in s:
-            #     s = '"%s"' % s
-
-            # data_safe.append(s)
-
-        # internal_value = ','.join(data_safe)
-
-        internal_value = tagulous.utils.render_tags(data)
+        internal_value = tagulous.utils.render_tags(data_safe)
 
         return internal_value
-        # return data
 
     def to_representation(self, value):
         if not isinstance(value, list):
@@ -302,14 +300,14 @@ class TaggitSerializer(serializers.Serializer):
     def create(self, validated_data):
         to_be_tagged, validated_data = self._pop_tags(validated_data)
 
-        tag_object = super(TaggitSerializer, self).create(validated_data)
+        tag_object = super().create(validated_data)
 
         return self._save_tags(tag_object, to_be_tagged)
 
     def update(self, instance, validated_data):
         to_be_tagged, validated_data = self._pop_tags(validated_data)
 
-        tag_object = super(TaggitSerializer, self).update(
+        tag_object = super().update(
             instance, validated_data
         )
 
@@ -391,7 +389,7 @@ class RequestResponseSerializerField(serializers.ListSerializer):
             if isinstance(data, list):
                 kwargs["many"] = True
 
-        super(RequestResponseSerializerField, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.pretty_print = pretty_print
 
@@ -1466,10 +1464,7 @@ class TestToFilesSerializer(serializers.Serializer):
             new_files.append(
                 {
                     "id": file.id,
-                    "file": "{site_url}/{file_access_url}".format(
-                        site_url=settings.SITE_URL,
-                        file_access_url=file.get_accessible_url(test, test.id),
-                    ),
+                    "file": f"{settings.SITE_URL}/{file.get_accessible_url(test, test.id)}",
                     "title": file.title,
                 }
             )
@@ -1797,6 +1792,13 @@ class FindingSerializer(TaggitSerializer, serializers.ModelSerializer):
 
         return data
 
+    def validate_severity(self, value: str) -> str:
+        if value not in SEVERITIES:
+            raise serializers.ValidationError(
+                f"Severity must be one of the following: {SEVERITIES}"
+            )
+        return value
+
     def build_relational_field(self, field_name, relation_info):
         if field_name == "notes":
             return NoteSerializer, {"many": True, "read_only": True}
@@ -1804,8 +1806,11 @@ class FindingSerializer(TaggitSerializer, serializers.ModelSerializer):
 
     @extend_schema_field(BurpRawRequestResponseSerializer)
     def get_request_response(self, obj):
-        # burp_req_resp = BurpRawRequestResponse.objects.filter(finding=obj)
+        # Not necessarily Burp scan specific - these are just any request/response pairs
         burp_req_resp = obj.burprawrequestresponse_set.all()
+        var = settings.MAX_REQRESP_FROM_API
+        if var > -1:
+            burp_req_resp = burp_req_resp[:var]
         burp_list = []
         for burp in burp_req_resp:
             request = burp.get_request()
@@ -1924,6 +1929,13 @@ class FindingCreateSerializer(TaggitSerializer, serializers.ModelSerializer):
 
         return data
 
+    def validate_severity(self, value: str) -> str:
+        if value not in SEVERITIES:
+            raise serializers.ValidationError(
+                f"Severity must be one of the following: {SEVERITIES}"
+            )
+        return value
+
 
 class VulnerabilityIdTemplateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -2000,6 +2012,13 @@ class StubFindingSerializer(serializers.ModelSerializer):
         model = Stub_Finding
         fields = "__all__"
 
+    def validate_severity(self, value: str) -> str:
+        if value not in SEVERITIES:
+            raise serializers.ValidationError(
+                f"Severity must be one of the following: {SEVERITIES}"
+            )
+        return value
+
 
 class StubFindingCreateSerializer(serializers.ModelSerializer):
     test = serializers.PrimaryKeyRelatedField(queryset=Test.objects.all())
@@ -2010,6 +2029,13 @@ class StubFindingCreateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "reporter": {"default": serializers.CurrentUserDefault()},
         }
+
+    def validate_severity(self, value: str) -> str:
+        if value not in SEVERITIES:
+            raise serializers.ValidationError(
+                f"Severity must be one of the following: {SEVERITIES}"
+            )
+        return value
 
 
 class ProductSerializer(TaggitSerializer, serializers.ModelSerializer):
@@ -2095,7 +2121,7 @@ class ImportScanSerializer(serializers.Serializer):
         allow_null=True, default=None, queryset=User.objects.all()
     )
     tags = TagListSerializerField(
-        required=False, help_text="Add tags that help describe this scan."
+        required=False, allow_empty=True, help_text="Add tags that help describe this scan."
     )
     close_old_findings = serializers.BooleanField(
         required=False,
@@ -2162,6 +2188,10 @@ class ImportScanSerializer(serializers.Serializer):
         help_text="If set to True, the tags will be applied to the findings",
         required=False,
     )
+    apply_tags_to_endpoints = serializers.BooleanField(
+        help_text="If set to True, the tags will be applied to the endpoints",
+        required=False,
+    )
 
     def save(self, push_to_jira=False):
         data = self.validated_data
@@ -2181,6 +2211,7 @@ class ImportScanSerializer(serializers.Serializer):
         api_scan_configuration = data.get("api_scan_configuration", None)
         service = data.get("service", None)
         apply_tags_to_findings = data.get("apply_tags_to_findings", False)
+        apply_tags_to_endpoints = data.get("apply_tags_to_endpoints", False)
         source_code_management_uri = data.get(
             "source_code_management_uri", None
         )
@@ -2199,6 +2230,12 @@ class ImportScanSerializer(serializers.Serializer):
             name=environment_name
         )
         tags = data.get("tags", None)
+        # Convert the tags to a list if needed. At this point, the
+        # TaggitListSerializer has already removed commas supplied
+        # by the user, so this operation will consistently return
+        # a list to be used by the importer
+        if isinstance(tags, str):
+            tags = tags.split(", ")
         lead = data.get("lead")
 
         scan = data.get("file", None)
@@ -2220,7 +2257,7 @@ class ImportScanSerializer(serializers.Serializer):
             product_type_name,
             auto_create_context,
             deduplication_on_engagement,
-            do_not_reactivate,
+            _do_not_reactivate,
         ) = get_import_meta_data_from_dict(data)
         engagement = get_or_create_engagement(
             engagement_id,
@@ -2246,9 +2283,9 @@ class ImportScanSerializer(serializers.Serializer):
         try:
             (
                 test,
-                finding_count,
-                closed_finding_count,
-                test_import,
+                _finding_count,
+                _closed_finding_count,
+                _test_import,
             ) = importer.import_scan(
                 scan,
                 scan_type,
@@ -2274,6 +2311,7 @@ class ImportScanSerializer(serializers.Serializer):
                 title=test_title,
                 create_finding_groups_for_all_findings=create_finding_groups_for_all_findings,
                 apply_tags_to_findings=apply_tags_to_findings,
+                apply_tags_to_endpoints=apply_tags_to_endpoints,
             )
 
             if test:
@@ -2296,13 +2334,11 @@ class ImportScanSerializer(serializers.Serializer):
         file = data.get("file")
         if not file and requires_file(scan_type):
             raise serializers.ValidationError(
-                "Uploading a Report File is required for {}".format(scan_type)
+                f"Uploading a Report File is required for {scan_type}"
             )
         if file and is_scan_file_too_large(file):
             raise serializers.ValidationError(
-                "Report file is too large. Maximum supported size is {} MB".format(
-                    settings.SCAN_FILE_MAX_SIZE
-                )
+                f"Report file is too large. Maximum supported size is {settings.SCAN_FILE_MAX_SIZE} MB"
             )
         tool_type = requires_tool_type(scan_type)
         if tool_type:
@@ -2417,6 +2453,7 @@ class ReImportScanSerializer(TaggitSerializer, serializers.Serializer):
     )
     tags = TagListSerializerField(
         required=False,
+        allow_empty=True,
         help_text="Modify existing tags that help describe this scan. (Existing test tags will be overwritten)",
     )
 
@@ -2446,6 +2483,10 @@ class ReImportScanSerializer(TaggitSerializer, serializers.Serializer):
         help_text="If set to True, the tags will be applied to the findings",
         required=False
     )
+    apply_tags_to_endpoints = serializers.BooleanField(
+        help_text="If set to True, the tags will be applied to the endpoints",
+        required=False,
+    )
 
     def save(self, push_to_jira=False):
         logger.debug("push_to_jira: %s", push_to_jira)
@@ -2459,6 +2500,7 @@ class ReImportScanSerializer(TaggitSerializer, serializers.Serializer):
             "close_old_findings_product_scope"
         )
         apply_tags_to_findings = data.get("apply_tags_to_findings", False)
+        apply_tags_to_endpoints = data.get("apply_tags_to_endpoints", False)
         do_not_reactivate = data.get("do_not_reactivate", False)
         version = data.get("version", None)
         build_id = data.get("build_id", None)
@@ -2468,6 +2510,12 @@ class ReImportScanSerializer(TaggitSerializer, serializers.Serializer):
         service = data.get("service", None)
         lead = data.get("lead", None)
         tags = data.get("tags", None)
+        # Convert the tags to a list if needed. At this point, the
+        # TaggitListSerializer has already removed commas supplied
+        # by the user, so this operation will consistently return
+        # a list to be used by the importer
+        if isinstance(tags, str):
+            tags = tags.split(", ")
         environment_name = data.get("environment", "Development")
         environment = Development_Environment.objects.get(
             name=environment_name
@@ -2532,11 +2580,11 @@ class ReImportScanSerializer(TaggitSerializer, serializers.Serializer):
                 reimporter = ReImporter()
                 (
                     test,
-                    finding_count,
-                    new_finding_count,
-                    closed_finding_count,
-                    reactivated_finding_count,
-                    untouched_finding_count,
+                    _finding_count,
+                    _new_finding_count,
+                    _closed_finding_count,
+                    _reactivated_finding_count,
+                    _untouched_finding_count,
                     test_import,
                 ) = reimporter.reimport_scan(
                     scan,
@@ -2560,6 +2608,7 @@ class ReImportScanSerializer(TaggitSerializer, serializers.Serializer):
                     do_not_reactivate=do_not_reactivate,
                     create_finding_groups_for_all_findings=create_finding_groups_for_all_findings,
                     apply_tags_to_findings=apply_tags_to_findings,
+                    apply_tags_to_endpoints=apply_tags_to_endpoints,
                 )
 
                 if test_import:
@@ -2582,8 +2631,8 @@ class ReImportScanSerializer(TaggitSerializer, serializers.Serializer):
                 importer = Importer()
                 (
                     test,
-                    finding_count,
-                    closed_finding_count,
+                    _finding_count,
+                    _closed_finding_count,
                     _,
                 ) = importer.import_scan(
                     scan,
@@ -2609,6 +2658,8 @@ class ReImportScanSerializer(TaggitSerializer, serializers.Serializer):
                     service=service,
                     title=test_title,
                     create_finding_groups_for_all_findings=create_finding_groups_for_all_findings,
+                    apply_tags_to_findings=apply_tags_to_findings,
+                    apply_tags_to_endpoints=apply_tags_to_endpoints,
                 )
 
             else:
@@ -2640,13 +2691,11 @@ class ReImportScanSerializer(TaggitSerializer, serializers.Serializer):
         file = data.get("file")
         if not file and requires_file(scan_type):
             raise serializers.ValidationError(
-                "Uploading a Report File is required for {}".format(scan_type)
+                f"Uploading a Report File is required for {scan_type}"
             )
         if file and is_scan_file_too_large(file):
             raise serializers.ValidationError(
-                "Report file is too large. Maximum supported size is {} MB".format(
-                    settings.SCAN_FILE_MAX_SIZE
-                )
+                f"Report file is too large. Maximum supported size is {settings.SCAN_FILE_MAX_SIZE} MB"
             )
         tool_type = requires_tool_type(scan_type)
         if tool_type:
@@ -2687,9 +2736,7 @@ class EndpointMetaImporterSerializer(serializers.Serializer):
         file = data.get("file")
         if file and is_scan_file_too_large(file):
             raise serializers.ValidationError(
-                "Report file is too large. Maximum supported size is {} MB".format(
-                    settings.SCAN_FILE_MAX_SIZE
-                )
+                f"Report file is too large. Maximum supported size is {settings.SCAN_FILE_MAX_SIZE} MB"
             )
 
         return data
@@ -2774,7 +2821,7 @@ class ImportLanguagesSerializer(serializers.Serializer):
                 try:
                     (
                         language_type,
-                        created,
+                        _created,
                     ) = Language_Type.objects.get_or_create(language=name)
                 except Language_Type.MultipleObjectsReturned:
                     language_type = Language_Type.objects.filter(
@@ -2793,9 +2840,7 @@ class ImportLanguagesSerializer(serializers.Serializer):
     def validate(self, data):
         if is_scan_file_too_large(data["file"]):
             raise serializers.ValidationError(
-                "File is too large. Maximum supported size is {} MB".format(
-                    settings.SCAN_FILE_MAX_SIZE
-                )
+                f"File is too large. Maximum supported size is {settings.SCAN_FILE_MAX_SIZE} MB"
             )
         return data
 
