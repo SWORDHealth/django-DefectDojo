@@ -290,6 +290,7 @@ class FindingList(Widget):
     def get_asciidoc(self):
         asciidoc = render_to_string("dojo/custom_asciidoc_report_findings.html",
                                     {"findings": self.findings.qs,
+                                     "host": self.host,
                                      "include_finding_notes": self.finding_notes,
                                      "include_finding_images": self.finding_images,
                                      "user_id": self.user_id})
@@ -370,8 +371,10 @@ class EndpointList(Widget):
     def get_asciidoc(self):
         asciidoc = render_to_string("dojo/custom_asciidoc_report_endpoints.html",
                                     {"endpoints": self.endpoints.qs,
+                                     "host": self.host,
                                      "include_finding_notes": self.finding_notes,
-                                     "include_finding_images": self.finding_images, })
+                                     "include_finding_images": self.finding_images,
+                                     "user_id": self.user_id})
         return mark_safe(asciidoc)
 
     def get_option_form(self):
@@ -399,7 +402,6 @@ def report_widget_factory(json_data=None, request=None, user=None, finding_notes
                                                 finding__duplicate=False,
                                                 finding__out_of_scope=False,
                                                 ).distinct()
-            user_id = user.id if user is not None else None
             d = QueryDict(mutable=True)
             for item in widget.get(list(widget.keys())[0]):
                 if item['name'] in d:
@@ -411,6 +413,7 @@ def report_widget_factory(json_data=None, request=None, user=None, finding_notes
             filter_string_matching = get_system_setting("filter_string_matching", False)
             filter_class = EndpointFilterWithoutObjectLookups if filter_string_matching else EndpointFilter
             endpoints = filter_class(d, queryset=endpoints, user=request.user)
+            user_id = user.id if user is not None else None
             endpoints = EndpointList(request=request, endpoints=endpoints, finding_notes=finding_notes,
                                      finding_images=finding_images, host=host, user_id=user_id)
 
