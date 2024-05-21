@@ -694,14 +694,11 @@
                     }},
                     { "data": "cwe" },
                     { "data": "cve" },
-                    { "data": "epss_score", "type": "num", "render": percentSort },
-                    { "data": "epss_percentile", "type": "num", "render": percentSort },
                     { "data": "found_date" },
                     { "data": "finding_age" },
                 {% if system_settings.enable_finding_sla %}
                     { "data": "finding_sla" },
                 {% endif %}
-                { "data": "reported_by" },
                 { "data": "found_by_test" },
                 { "data": "status" },
                 {% if system_settings.enable_jira %}
@@ -711,14 +708,9 @@
                         { "data": "jira_change" },
                     {% endif %}
                 {% endif %}
-                {% if 'is_finding_groups_enabled'|system_setting_enabled %}
-                    { "data": "grouped" },
-                {% endif %}
                 {% if show_product_column and product_tab is None %}
                     { "data": "product" },
-                {% endif %}
-                { "data": "service" },
-                { "data": "planned_remediation_date" },
+                {% endif %},
             ];
         {% endblock datatables_columns %}
     </script>
