@@ -4,7 +4,7 @@
   "license" : "BSD-3-Clause",
   "private": true,
   "dependencies": {
-    "bootstrap": "^3.4.1",
+    "bootstrap": "^5.0.0",
     "bootstrap-select": "^1.13.18",
     "bootstrap-social": "^4.0.0",
     "bootstrap-wysiwyg": "^2.0.0",
